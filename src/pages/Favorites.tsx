@@ -10,7 +10,7 @@ import PageShell from "../components/layout/PageShell";
 import Header from "../components/ui/Header";
 import FoodCard from "../components/features/FoodCard";
 import FoodModal from "../components/features/FoodModal";
-import OrderInvoiceModal from "../components/features/OrderInvoiceModal";
+// import OrderInvoiceModal from "../components/features/OrderInvoiceModal";
 
 export default function FavoritesPage() {
   const { favorites, addToFavorites, removeFromFavorites, getQuantity } =
@@ -22,7 +22,7 @@ export default function FavoritesPage() {
     useDeliveryItems();
 
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
-  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
+  // const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
 
   const favoriteFoods = useMemo<
     Array<{
@@ -108,13 +108,13 @@ export default function FavoritesPage() {
                 عدد
               </p>
             </div>
-            <button
+            {/* <button
               type="button"
               onClick={() => setIsInvoiceOpen(true)}
               className="rounded-full bg-[#7a394a] px-4 py-2 text-sm font-semibold text-white"
             >
               مشاهده فاکتور
-            </button>
+            </button> */}
           </div>
           <section className="grid gap-4 md:grid-cols-2">
             {favoriteFoods.map((entry) => (
@@ -141,11 +141,11 @@ export default function FavoritesPage() {
           selectedFood && removeFromFavorites(String(selectedFood.id))
         }
       />
-      <OrderInvoiceModal
+      {/* <OrderInvoiceModal
         isOpen={isInvoiceOpen}
         items={favoriteFoods}
         onClose={() => setIsInvoiceOpen(false)}
-      />
+      /> */}
     </PageShell>
   );
 }
