@@ -97,7 +97,7 @@ export default function FavoritesPage() {
         </section>
       ) : (
         <>
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[24px] bg-white p-4 shadow-sm">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-white p-4 shadow-sm">
             <div>
               <p className="text-sm text-zinc-500">تعداد آیتم‌ها</p>
               <p className="text-lg font-bold text-zinc-900">
