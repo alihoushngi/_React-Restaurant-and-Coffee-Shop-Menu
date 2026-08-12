@@ -8,7 +8,7 @@ import type { Food, MenuCategory, MenuItem } from "../types/menu";
 import { buildMenuTree } from "../lib/menu/utils";
 import { SHOW_SUBCATEGORY_TABS } from "../constants/menu";
 import PageShell from "../components/layout/PageShell";
-import CategoryTabs from "../components/ui/CategoryTabs";
+import MenuStickyHeader from "../components/ui/MenuStickyHeader";
 import CategoryMenuSection from "../components/features/CategoryMenuSection";
 import FoodModal from "../components/features/FoodModal";
 
@@ -142,7 +142,7 @@ export default function DeliveryMenu() {
 
   return (
     <PageShell>
-      <CategoryTabs
+      <MenuStickyHeader
         categories={categories}
         activeCategoryId={currentActiveCategoryId}
         onSelect={handleTabClick}

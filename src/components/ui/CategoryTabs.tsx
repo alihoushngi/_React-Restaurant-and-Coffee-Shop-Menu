@@ -42,29 +42,20 @@ const CategoryTabs = ({
   }, [activeCategoryId]);
 
   return (
-    <div className="sticky top-0 z-50 mb-4">
-      <div
-        ref={containerRef}
-        className="
-          flex
-          gap-1
-          overflow-x-auto
-          rounded-2xl
-          bg-[#7a394a]/90
-          p-2
-          backdrop-blur-md
-        "
-      >
-        {parentCategories.map((category) => {
-          const isActive = String(category.Id) === activeCategoryId;
+    <div
+      ref={containerRef}
+      className="flex gap-1 overflow-x-auto rounded-2xl bg-[#7a394a]/90 p-2 backdrop-blur-md"
+    >
+      {parentCategories.map((category) => {
+        const isActive = String(category.Id) === activeCategoryId;
 
-          return (
-            <button
-              key={category.Id}
-              type="button"
-              data-id={category.Id}
-              onClick={() => onSelect(String(category.Id))}
-              className={`
+        return (
+          <button
+            key={category.Id}
+            type="button"
+            data-id={category.Id}
+            onClick={() => onSelect(String(category.Id))}
+            className={`
                 flex
                 shrink-0
                 items-center
@@ -81,22 +72,21 @@ const CategoryTabs = ({
                     : "bg-white text-zinc-800 shadow-sm hover:bg-zinc-50"
                 }
               `}
-            >
-              <img
-                src={category.ImageUrl}
-                alt={category.Title}
-                loading="lazy"
-                className="h-9 w-9 shrink-0 rounded-lg object-contain"
-                onError={(e) => {
-                  e.currentTarget.src = "../../assets/placeholder.jpg";
-                }}
-              />
+          >
+            <img
+              src={category.ImageUrl}
+              alt={category.Title}
+              loading="lazy"
+              className="h-9 w-9 shrink-0 rounded-lg object-contain"
+              onError={(e) => {
+                e.currentTarget.src = "../../assets/placeholder.jpg";
+              }}
+            />
 
-              <span>{category.Title}</span>
-            </button>
-          );
-        })}
-      </div>
+            <span>{category.Title}</span>
+          </button>
+        );
+      })}
     </div>
   );
 };

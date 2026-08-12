@@ -101,7 +101,7 @@ const OrderInvoiceModal: FC<OrderInvoiceModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-zinc-950/70 p-2 sm:items-center sm:p-3">
+    <div className="fixed inset-0 z-70 flex items-end justify-center bg-zinc-950/70 p-2 sm:items-center sm:p-3">
       <div className="flex max-h-[98vh] w-full max-w-2xl flex-col rounded-[28px] bg-white p-4 shadow-2xl print:shadow-none sm:p-6">
         <div className="flex items-start justify-between gap-3 print:hidden">
           <div>
@@ -121,7 +121,7 @@ const OrderInvoiceModal: FC<OrderInvoiceModalProps> = ({
           </button>
         </div>
 
-        <div className="mt-2 rounded-[24px] border border-zinc-200 bg-zinc-50 p-4 sm:p-5">
+        <div className="mt-2 rounded-3xl border border-zinc-200 bg-zinc-50 p-4 sm:p-5">
           <div className="flex gap-3 border-b border-zinc-200 pb-2 sm:flex-row sm:items-center justify-between">
             <div>
               <p className="text-sm text-zinc-500">نام رستوران</p>
@@ -136,7 +136,7 @@ const OrderInvoiceModal: FC<OrderInvoiceModalProps> = ({
           </div>
 
           <div className="mt-2 overflow-y-auto pr-1">
-            <div className="space-y-3 !max-h-[180px]">
+            <div className="space-y-3 max-h-45!">
               {items.map((item) => (
                 <div
                   key={item.foodId}

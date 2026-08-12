@@ -97,7 +97,7 @@ export default function CategoryMenuSection({
     <div
       data-category={category.Id}
       ref={sectionRef}
-      className={`rounded-[28px] p-4 shadow-sm ${categoryBg[index % categoryBg.length]}`}
+      className={`scroll-mt-40 rounded-[28px] p-4 shadow-sm ${categoryBg[index % categoryBg.length]}`}
     >
       <div className="mb-4 flex items-center justify-between">
         <div className="flex flex-col items-start gap-1 text-sm text-zinc-500">
