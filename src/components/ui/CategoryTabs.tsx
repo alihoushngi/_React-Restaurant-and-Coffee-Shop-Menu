@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef } from "react";
 import type { MenuCategory } from "../../types/menu";
-import { sortCategories } from "../../lib/menu/utils";
+import {
+  RAYO_LOGO_IMAGE,
+  sortCategories,
+} from "../../lib/menu/utils";
 
 interface CategoryTabsProps {
   categories: MenuCategory[];
@@ -27,16 +30,10 @@ const CategoryTabs = ({
     ) as HTMLElement | null;
 
     if (activeBtn && containerRef.current) {
-      const container = containerRef.current;
-
-      const offsetLeft =
-        activeBtn.offsetLeft -
-        container.offsetWidth / 2 +
-        activeBtn.offsetWidth / 2;
-
-      container.scrollTo({
-        left: offsetLeft,
+      activeBtn.scrollIntoView({
         behavior: "smooth",
+        block: "nearest",
+        inline: "center",
       });
     }
   }, [activeCategoryId]);
@@ -55,6 +52,7 @@ const CategoryTabs = ({
             type="button"
             data-id={category.Id}
             onClick={() => onSelect(String(category.Id))}
+            aria-current={isActive ? "true" : undefined}
             className={`
                 flex
                 shrink-0
@@ -74,12 +72,18 @@ const CategoryTabs = ({
               `}
           >
             <img
-              src={category.ImageUrl}
+              src={category.ImageUrl || RAYO_LOGO_IMAGE}
               alt={category.Title}
+              width={36}
+              height={36}
               loading="lazy"
+              decoding="async"
               className="h-9 w-9 shrink-0 rounded-lg object-contain"
               onError={(e) => {
-                e.currentTarget.src = "../../assets/placeholder.jpg";
+                if (e.currentTarget.src !== RAYO_LOGO_IMAGE) {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = RAYO_LOGO_IMAGE;
+                }
               }}
             />
 

@@ -1,7 +1,8 @@
-import type { FC } from "react";
+import { useRef, type FC } from "react";
 import { HiXMark } from "react-icons/hi2";
 import type { FavoriteEntry, Food } from "../../types/menu";
 import { formatPrice, toPersianDigits } from "../../lib/menu/utils";
+import { useModalBehavior } from "../../hooks/useModalBehavior";
 
 interface OrderInvoiceModalProps {
   isOpen: boolean;
@@ -14,10 +15,13 @@ const OrderInvoiceModal: FC<OrderInvoiceModalProps> = ({
   items,
   onClose,
 }) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useModalBehavior({ isOpen, onClose, dialogRef });
+
   if (!isOpen) return null;
 
   const subtotal = items.reduce(
-    (sum, item) => sum + item.food.price * item.quantity,
+    (sum, item) => sum + (item.food.price ?? 0) * item.quantity,
     0,
   );
   const taxAmount = Math.round(subtotal * 0.1);
@@ -80,7 +84,7 @@ const OrderInvoiceModal: FC<OrderInvoiceModalProps> = ({
                         <div>${item.food.name}</div>
                         <div class="sub">تعداد: ${item.quantity}</div>
                       </div>
-                      <div><strong>${formatPrice(item.food.price * item.quantity)}</strong></div>
+                      <div><strong>${formatPrice((item.food.price ?? 0) * item.quantity)}</strong></div>
                     </div>
                   `,
                 )
@@ -101,11 +105,21 @@ const OrderInvoiceModal: FC<OrderInvoiceModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-70 flex items-end justify-center bg-zinc-950/70 p-2 sm:items-center sm:p-3">
-      <div className="flex max-h-[98vh] w-full max-w-2xl flex-col rounded-[28px] bg-white p-4 shadow-2xl print:shadow-none sm:p-6">
+    <div
+      className="fixed inset-0 z-70 flex items-end justify-center overscroll-contain bg-zinc-950/70 p-2 sm:items-center sm:p-3"
+      role="presentation"
+    >
+      <div
+        ref={dialogRef}
+        tabIndex={-1}
+        className="flex max-h-[98dvh] w-full max-w-2xl flex-col rounded-[28px] bg-white p-4 shadow-2xl outline-none print:shadow-none sm:p-6"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="order-invoice-title"
+      >
         <div className="flex items-start justify-between gap-3 print:hidden">
           <div>
-            <h2 className="text-xl font-bold text-zinc-900">فاکتور سفارش</h2>
+            <h2 id="order-invoice-title" className="text-xl font-bold text-zinc-900">فاکتور سفارش</h2>
             <p className="mt-1 text-sm text-zinc-500">
               فاکتور شما آماده است؛ برای ذخیره نسخه PDF، روی گزینه دانلود کلیک
               کنید.
@@ -152,7 +166,7 @@ const OrderInvoiceModal: FC<OrderInvoiceModalProps> = ({
                   </div>
                   <div className="text-left">
                     <p className="font-semibold text-zinc-900">
-                      {formatPrice(item.food.price * item.quantity)}
+                      {formatPrice((item.food.price ?? 0) * item.quantity)}
                     </p>
                   </div>
                 </div>

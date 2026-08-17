@@ -21,7 +21,10 @@ export async function sendRequest<T, D = unknown>({
   sendAuthorization = true,
   ...restOptions
 }: IRequestOption<D>): Promise<IResponse<T>> {
-  const baseURL: string = `${import.meta.env.VITE_API_BASE}/${version}`;
+  const apiBase = import.meta.env.DEV
+    ? "/api/data"
+    : import.meta.env.VITE_API_BASE;
+  const baseURL: string = `${apiBase}/${version}`;
 
   const axiosInstance: AxiosInstance = axios.create({ baseURL });
 

@@ -5,13 +5,14 @@ import type { MenuCategory } from "../../types/menu-category.type";
 
 const { menu } = getAPIRoute();
 
-export const getDeliveryCategory = async () => {
+export const getDeliveryCategory = async (signal?: AbortSignal) => {
   const response = await getRequest<
     BaseResponse<MenuCategory[]>,
     Record<string, never>
   >({
     url: menu.DeliveryCategory.path,
     sendAuthorization: false,
+    signal,
   });
 
   if ("error" in response) {

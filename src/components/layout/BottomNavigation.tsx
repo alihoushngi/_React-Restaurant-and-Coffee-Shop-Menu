@@ -1,121 +1,190 @@
-import { Link } from "react-router-dom";
-import { useLocation } from "react-router-dom";
-import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Link, useLocation } from "react-router-dom";
+import { memo, useMemo, useState } from "react";
 import {
   HiBars3,
   HiClipboardDocumentList,
   HiMagnifyingGlass,
 } from "react-icons/hi2";
+import type { MenuMode } from "../../types/menu";
+import { getMenuPath, resolveMenuMode } from "../../lib/menu/utils";
+import SearchInput from "../ui/SearchInput";
+import InformationSheet from "../features/InformationSheet";
+import {
+  getFavoriteEntryMenuMode,
+  useFavorites,
+} from "../../hooks/useFavorites";
 
-import { AnimatePresence, motion } from "framer-motion";
+export interface MenuSearchControls {
+  isOpen: boolean;
+  isActive: boolean;
+  value: string;
+  hint?: string;
+  onChange: (value: string) => void;
+  onClear: () => void;
+  onToggle: () => void;
+}
 
-const items = [
-  // { href: "/", label: "خانه", icon: HiHome },
-  { href: "/favorites", label: "لیست سفارش", icon: HiClipboardDocumentList },
-  { href: "/search", label: "جستجو", icon: HiMagnifyingGlass },
-];
+interface BottomNavigationProps {
+  menuMode?: MenuMode;
+  searchControls?: MenuSearchControls;
+}
 
-const BottomNavigation = () => {
-  const pathname = useLocation().pathname;
+const navItemClass = (active: boolean, compact = false) =>
+  `relative flex h-full w-full min-w-0 flex-col items-center justify-center gap-1 rounded-2xl py-2 font-semibold leading-4 transition ${
+    compact ? "px-0 text-[10px]" : "px-1 text-[11px]"
+  } ${active ? "bg-[#7a394a] text-white" : "text-zinc-500"}`;
+
+const searchTransition = {
+  duration: 0.28,
+  ease: [0.22, 1, 0.36, 1] as const,
+};
+
+const BottomNavigation = ({
+  menuMode,
+  searchControls,
+}: BottomNavigationProps) => {
+  const location = useLocation();
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const { favorites } = useFavorites();
+  const queryMenuMode = new URLSearchParams(location.search).get("menu");
+  const resolvedMenuMode = menuMode ?? resolveMenuMode(queryMenuMode);
+  const orderHref = `/favorites?menu=${resolvedMenuMode}`;
+  const searchHref = `${getMenuPath(resolvedMenuMode)}?search=1`;
+  const isSearchOpen = searchControls?.isOpen === true;
+  const orderCount = useMemo(
+    () =>
+      favorites.reduce(
+        (total, entry) =>
+          getFavoriteEntryMenuMode(entry) === resolvedMenuMode
+            ? total + entry.quantity
+            : total,
+        0,
+      ),
+    [favorites, resolvedMenuMode],
+  );
 
   return (
     <>
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white/95 p-2 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-1">
-          {items.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname === href;
-            return (
-              <Link
-                key={href}
-                to={href}
-                className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-[11px] font-semibold leading-4 transition ${
-                  isActive ? "text-white bg-[#7a394a]" : "text-zinc-500"
-                }`}
-              >
-                <Icon className="h-5 w-5" />
-                <span>{label}</span>
-              </Link>
-            );
-          })}
-          <button
-            type="button"
-            onClick={() => setIsInfoOpen(true)}
-            className="flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-[11px] font-semibold leading-4 text-zinc-500"
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-zinc-200 bg-white/95 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur">
+        <motion.div
+          layout
+          transition={searchTransition}
+          className="mx-auto flex min-h-14 max-w-5xl items-stretch justify-between gap-1"
+        >
+          <motion.div
+            layout
+            transition={searchTransition}
+            className={
+              isSearchOpen
+                ? "w-[3.6rem] shrink-0 min-[360px]:w-[4.25rem]"
+                : "min-w-0 flex-1"
+            }
           >
-            <HiBars3 className="h-5 w-5" />
-            <span>اطلاعات</span>
-          </button>
-        </div>
+            <Link
+              to={orderHref}
+              aria-label={
+                orderCount > 0 ? `لیست سفارش، ${orderCount} آیتم` : "لیست سفارش"
+              }
+              className={navItemClass(
+                location.pathname === "/favorites",
+                isSearchOpen,
+              )}
+            >
+              <HiClipboardDocumentList className="h-5 w-5" />
+              {/* {orderCount > 0 ? (
+                <span
+                  className="absolute top-1 right-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] leading-none font-bold text-zinc-950 shadow-sm"
+                  aria-hidden="true"
+                >
+                  {orderCount}
+                </span>
+              ) : null} */}
+              <span className="whitespace-nowrap">لیست سفارش</span>
+            </Link>
+          </motion.div>
+
+          {searchControls ? (
+            <motion.div
+              layout
+              transition={searchTransition}
+              className="min-w-0 flex-1"
+            >
+              <AnimatePresence initial={false} mode="popLayout">
+                {isSearchOpen ? (
+                  <motion.div
+                    key="search-input"
+                    initial={{ opacity: 0, scaleX: 0.45 }}
+                    animate={{ opacity: 1, scaleX: 1 }}
+                    exit={{ opacity: 0, scaleX: 0.45 }}
+                    transition={searchTransition}
+                    className="flex h-full origin-center items-center"
+                  >
+                    <SearchInput
+                      value={searchControls.value}
+                      onChange={searchControls.onChange}
+                      onClear={searchControls.onClear}
+                      showClear
+                      autoFocus
+                      compact
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.button
+                    layout
+                    key="search-action"
+                    type="button"
+                    onClick={searchControls.onToggle}
+                    className={navItemClass(false)}
+                    aria-expanded="false"
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.85 }}
+                    transition={searchTransition}
+                  >
+                    <HiMagnifyingGlass className="h-5 w-5" />
+                    <span>جستجو</span>
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          ) : (
+            <div className="min-w-0 flex-1">
+              <Link to={searchHref} className={navItemClass(false)}>
+                <HiMagnifyingGlass className="h-5 w-5" />
+                <span>جستجو</span>
+              </Link>
+            </div>
+          )}
+
+          <motion.div
+            layout
+            transition={searchTransition}
+            className={
+              isSearchOpen
+                ? "w-[3.6rem] shrink-0 min-[360px]:w-[4.25rem]"
+                : "min-w-0 flex-1"
+            }
+          >
+            <button
+              type="button"
+              onClick={() => setIsInfoOpen(true)}
+              className={navItemClass(false, isSearchOpen)}
+            >
+              <HiBars3 className="h-5 w-5" />
+              <span className="whitespace-nowrap">اطلاعات</span>
+            </button>
+          </motion.div>
+        </motion.div>
       </nav>
 
       <AnimatePresence>
         {isInfoOpen ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-zinc-950/55"
-            onClick={() => setIsInfoOpen(false)}
-          >
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 220, damping: 24 }}
-              className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-xl rounded-t-[28px] bg-white p-5 shadow-2xl"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div className="mx-auto mb-4 h-1.5 w-16 rounded-full bg-zinc-200" />
-              <h3 className="text-lg font-bold text-zinc-900">
-                اطلاعات و نشانی
-              </h3>
-              <div className="mt-4 space-y-4 text-sm leading-7 text-zinc-700">
-                <p>
-                  فقط پنج‌شنبه و جمعه شب‌ها، مدت استفاده از میز حداکثر ۲ ساعته.
-                  در سایر زمان‌ها محدودیتی که نداریم هیچ، خوشحال می‌شیم بیشتر
-                  میزبانتون باشیم ☺️
-                </p>
-                <div className="rounded-2xl bg-zinc-50 p-4">
-                  <p className="font-semibold text-zinc-900">نشانی</p>
-                  <p className="mt-1">
-                    لواسان، بعد از میدان گلندوک، کافه رستوران رایو
-                  </p>
-                  <p className="mt-1">تلفن: 26550072-021</p>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  <a
-                    href="https://map.google.com/?q=35.82458085337998,%2051.638400225813804"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-full bg-amber-500 px-3 py-2 font-semibold text-white"
-                  >
-                    گوگل مپ
-                  </a>
-                  <a
-                    href="https://waze.com/ul/htnkez19u7"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-full bg-amber-500 px-3 py-2 font-semibold text-white"
-                  >
-                    Waze
-                  </a>
-                  <a
-                    href="https://instagram.com/rayo.restaurant"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-full bg-amber-500 px-3 py-2 font-semibold text-white"
-                  >
-                    اینستاگرام
-                  </a>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
+          <InformationSheet onClose={() => setIsInfoOpen(false)} />
         ) : null}
       </AnimatePresence>
     </>
   );
 };
 
-export default BottomNavigation;
+export default memo(BottomNavigation);

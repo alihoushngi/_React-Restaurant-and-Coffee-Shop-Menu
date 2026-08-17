@@ -5,13 +5,14 @@ import type { MenuItem } from "../../types/menu-item.type";
 
 const { menu } = getAPIRoute();
 
-export const getDeliveryItems = async () => {
+export const getDeliveryItems = async (signal?: AbortSignal) => {
   const response = await getRequest<
     BaseResponse<MenuItem[]>,
     Record<string, never>
   >({
     url: menu.DeliveryItems.path,
     sendAuthorization: false,
+    signal,
   });
 
   if ("error" in response) {

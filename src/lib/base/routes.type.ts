@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 // Interface for a route with a path and a getter function
 interface Route {
   path: string;

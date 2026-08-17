@@ -7,4 +7,5 @@ export interface MenuCategory {
   BeforeLunchRank: number;
   Delivery: boolean;
   HasChild: boolean;
+  ImageUrl: string;
 }

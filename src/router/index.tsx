@@ -1,29 +1,45 @@
 import { createBrowserRouter } from "react-router-dom";
-import Home from "../pages/Home";
-import DeliveryMenu from "../pages/DeliveryMenu";
-import FavoritesPage from "../pages/Favorites";
-import SearchPage from "../pages/Search";
-import TableMenu from "../pages/TableMenu";
+import RouteLoadingFallback from "../components/ui/RouteLoadingFallback";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <Home />,
+    HydrateFallback: RouteLoadingFallback,
+    lazy: async () => {
+      const { default: Component } = await import("../pages/Home");
+      return { Component };
+    },
   },
   {
     path: "/deliverymenu",
-    element: <DeliveryMenu />,
+    HydrateFallback: RouteLoadingFallback,
+    lazy: async () => {
+      const { default: Component } = await import("../pages/DeliveryMenu");
+      return { Component };
+    },
   },
   {
     path: "/favorites",
-    element: <FavoritesPage />,
+    HydrateFallback: RouteLoadingFallback,
+    lazy: async () => {
+      const { default: Component } = await import("../pages/Favorites");
+      return { Component };
+    },
   },
   {
     path: "/search",
-    element: <SearchPage />,
+    HydrateFallback: RouteLoadingFallback,
+    lazy: async () => {
+      const { default: Component } = await import("../pages/Search");
+      return { Component };
+    },
   },
   {
     path: "/tablemenu",
-    element: <TableMenu />,
+    HydrateFallback: RouteLoadingFallback,
+    lazy: async () => {
+      const { default: Component } = await import("../pages/TableMenu");
+      return { Component };
+    },
   },
 ]);

@@ -16,4 +16,12 @@ export default defineConfig({
     chunkSizeWarningLimit: 3000,
     outDir: "dist",
   },
+  server: {
+    proxy: {
+      "/api/data": {
+        target: "https://rayocafe.ir",
+        changeOrigin: true,
+      },
+    },
+  },
 });

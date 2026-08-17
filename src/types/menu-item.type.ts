@@ -1,11 +1,11 @@
 export interface MenuItem {
   Id: number;
   Title: string;
-  Summary: string;
+  Summary: string | null;
   Rank: number;
   CategoryId: number;
   CategoryParentId: number | null;
-  Price: number;
+  Price: number | null;
   SmallPrice: number | null;
   Enable: boolean;
   HasPic: boolean;
@@ -13,4 +13,5 @@ export interface MenuItem {
   JustTestTime: boolean;
   HideForMidweekBreakfast: boolean;
   ImageUrl: string;
+  IsNew?: boolean;
 }

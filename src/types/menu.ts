@@ -23,7 +23,7 @@ export interface MenuItem {
 
   Title: string;
 
-  Summary: string;
+  Summary: string | null;
 
   Rank: number;
 
@@ -31,7 +31,7 @@ export interface MenuItem {
 
   CategoryParentId: number | null;
 
-  Price: number;
+  Price: number | null;
 
   SmallPrice: number | null;
 
@@ -46,10 +46,16 @@ export interface MenuItem {
   HideForMidweekBreakfast: boolean;
 
   ImageUrl: string;
+
+  IsNew?: boolean;
 }
+
+export type MenuMode = "delivery" | "dineIn";
 
 export interface MenuTreeNode {
   category: MenuCategory;
+
+  categorySearchText: string;
 
   foods: Food[];
 
@@ -69,15 +75,27 @@ export type MenuAvailability =
 export interface Food {
   id: string | number;
 
+  sourceItemId?: number;
+
+  orderKey: string;
+
+  menuMode: MenuMode;
+
   categoryId: string | number;
+
+  categoryTitle: string;
 
   name: string;
 
   image: string;
 
+  hasRealImage: boolean;
+
   shortDescription: string;
 
-  price: number;
+  price: number | null;
+
+  enabled: boolean;
 
   isPopular?: boolean;
 
@@ -87,13 +105,74 @@ export interface Food {
 
   rank?: number;
 
-  summary?: string;
+  summary?: string | null;
+
+  searchText: string;
+
+  variants?: FoodVariant[];
+
+  variant?: FoodVariantMeta;
+}
+
+export interface FoodVariantMeta {
+  key: string;
+
+  label: string;
+
+  description: string;
+
+  categoryId: number;
+}
+
+export interface FoodVariant extends FoodVariantMeta {
+  itemId: number;
+
+  title: string;
+
+  orderKey: string;
+
+  price: number | null;
+
+  enabled: boolean;
+
+  image: string;
+
+  hasRealImage: boolean;
+
+  shortDescription: string;
+
+  summary?: string | null;
+
+  rank?: number;
+
+  searchText: string;
 }
 
 export interface FavoriteEntry {
   foodId: string;
 
+  orderKey?: string;
+
+  menuMode?: MenuMode;
+
   quantity: number;
 
   addedAt: string;
+}
+
+export interface OrderSelection {
+  foodId: string;
+
+  orderKey: string;
+
+  menuMode: MenuMode;
+}
+
+export interface OrderSelectionQuantity extends OrderSelection {
+  quantity: number;
+}
+
+export interface FoodVariantQuantity {
+  variant: FoodVariant;
+  quantity: number;
 }
