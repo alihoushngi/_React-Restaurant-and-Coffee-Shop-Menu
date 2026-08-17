@@ -4,14 +4,13 @@ import { useState } from "react";
 import {
   HiBars3,
   HiClipboardDocumentList,
-  HiHome,
   HiMagnifyingGlass,
 } from "react-icons/hi2";
 
 import { AnimatePresence, motion } from "framer-motion";
 
 const items = [
-  { href: "/", label: "خانه", icon: HiHome },
+  // { href: "/", label: "خانه", icon: HiHome },
   { href: "/favorites", label: "لیست سفارش", icon: HiClipboardDocumentList },
   { href: "/search", label: "جستجو", icon: HiMagnifyingGlass },
 ];

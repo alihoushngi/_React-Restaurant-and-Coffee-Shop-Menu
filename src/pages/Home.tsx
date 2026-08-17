@@ -48,7 +48,7 @@ export default function Home() {
 
         {/* Notice */}
         <section className="mb-2 rounded-[22px] border border-[#7a394a] bg-[#7a394a]/90 p-4 text-sm leading-6 text-white shadow-sm">
-          <p className="font-semibold">به کافه آولی خوش آمدید ✨</p>
+          <p className="font-semibold">به کافه رایو خوش آمدید ✨</p>
           <p className="mt-1 text-[13px] opacity-90">
             برای مشاهده منوی سالن یا سفارش بیرون بر، یکی از گزینه‌های زیر را
             انتخاب کنید.
