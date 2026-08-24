@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import type { MenuCategory } from "../../types/menu";
-import {
-  RAYO_LOGO_IMAGE,
-  sortCategories,
-} from "../../lib/menu/utils";
+import { RAYO_LOGO_IMAGE } from "../../lib/menu/utils";
 
 interface CategoryTabsProps {
   categories: MenuCategory[];
@@ -19,9 +16,7 @@ const CategoryTabs = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const parentCategories = useMemo(() => {
-    return sortCategories(
-      categories.filter((category) => category.ParentId === null),
-    );
+    return categories.filter((category) => category.ParentId === null);
   }, [categories]);
 
   useEffect(() => {

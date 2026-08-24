@@ -131,9 +131,6 @@ export const mapMenuItemToFood = (
   };
 };
 
-export const sortCategories = (categories: MenuCategory[]) =>
-  [...categories].sort((a, b) => a.Rank - b.Rank);
-
 const createVariantPairingKey = (
   title: string,
   definition: CategoryVariantDefinition,
@@ -244,11 +241,10 @@ export const buildMenuTree = (
   menuMode: MenuMode,
   categoriesById = createCategoryLookup(categories),
 ): MenuTreeNode[] => {
-  const sortedCategories = sortCategories(categories);
   const childrenByParent = new Map<number, MenuCategory[]>();
   const itemsByCategory = new Map<number, MenuItem[]>();
 
-  for (const category of sortedCategories) {
+  for (const category of categories) {
     if (category.ParentId === null) continue;
     const children = childrenByParent.get(category.ParentId) ?? [];
     children.push(category);
@@ -301,7 +297,7 @@ export const buildMenuTree = (
     };
   };
 
-  return sortedCategories
+  return categories
     .filter((category) => category.ParentId === null)
     .map((category) => buildNode(category, new Set<number>()));
 };
