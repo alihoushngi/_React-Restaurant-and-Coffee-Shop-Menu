@@ -35,7 +35,7 @@ const CategoryTabs = ({
   return (
     <div
       ref={containerRef}
-      className="flex gap-1 overflow-x-auto rounded-2xl bg-[#7a394a]/90 p-2 backdrop-blur-md"
+      className="menu-navbar flex gap-1 overflow-x-auto rounded-2xl p-2"
     >
       {parentCategories.map((category) => {
         const isActive = String(category.Id) === activeCategoryId;
