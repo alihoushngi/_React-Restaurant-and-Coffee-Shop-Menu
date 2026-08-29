@@ -41,10 +41,33 @@
   --font-vazir: "Vazirmatn", "Segoe UI", Tahoma, sans-serif;
   --color-product-add: #637d6c;
   --color-order-available: #637d6c;
+  --color-category-bg: #f6f1f0;
 }
 
 .order-available-text {
   color: var(--color-order-available);
+}
+
+.category-surface {
+  background-color: var(--color-category-bg);
+}
+
+@media (hover: hover) {
+  .category-item:hover:not([aria-current="true"]):not([aria-pressed="true"]) {
+    background-color: color-mix(
+      in srgb,
+      var(--color-category-bg) 88%,
+      black
+    );
+  }
+}
+
+.category-item:active:not([aria-current="true"]):not([aria-pressed="true"]) {
+  background-color: color-mix(
+    in srgb,
+    var(--color-category-bg) 80%,
+    black
+  );
 }
 
 .product-add-button {

@@ -62,7 +62,7 @@ const CategoryTabs = ({
                 ${
                   isActive
                     ? "bg-[#496a65] text-white shadow"
-                    : "bg-white text-zinc-800 shadow-sm hover:bg-zinc-50"
+                    : "category-item category-surface text-zinc-800 shadow-sm"
                 }
               `}
           >

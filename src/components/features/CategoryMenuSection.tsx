@@ -3,16 +3,6 @@ import { SHOW_SUBCATEGORY_TABS } from "../../constants/menu";
 import { RAYO_LOGO_IMAGE } from "../../lib/menu/utils";
 import FoodCard from "./FoodCard";
 
-const categoryBg = [
-  "bg-amber-50",
-  "bg-emerald-50",
-  "bg-blue-50",
-  "bg-purple-50",
-  "bg-pink-50",
-  "bg-orange-50",
-  "bg-slate-50",
-];
-
 interface CategoryMenuSectionProps {
   category: MenuCategory;
   foods: Food[];
@@ -107,7 +97,7 @@ export default function CategoryMenuSection({
       data-category={category.Id}
       ref={sectionRef}
       style={{ scrollMarginTop }}
-      className={`rounded-[28px] p-4 shadow-sm ${categoryBg[index % categoryBg.length]}`}
+      className="category-surface rounded-[28px] p-4 shadow-sm"
     >
       <div className="mb-4 flex items-center justify-between">
         <div className="flex flex-col items-start gap-1 text-sm text-zinc-500">
@@ -147,10 +137,10 @@ export default function CategoryMenuSection({
                 type="button"
                 onClick={() => onSubSelect?.(sub.category.Id)}
                 aria-pressed={isActive}
-                className={`shrink-0 rounded-full px-3 py-1 text-xs transition ${
+                className={`category-item shrink-0 rounded-full px-3 py-1 text-xs transition ${
                   isActive
                     ? "bg-zinc-900 text-white"
-                    : "bg-white text-zinc-600"
+                    : "category-surface text-zinc-600"
                 }`}
               >
                 {sub.category.Title}
