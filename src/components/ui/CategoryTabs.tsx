@@ -61,7 +61,7 @@ const CategoryTabs = ({
                 ${
                   isActive
                     ? "category-item-selected shadow"
-                    : "category-item category-surface text-zinc-800 shadow-sm"
+                    : "category-item category-surface shadow-sm"
                 }
               `}
           >

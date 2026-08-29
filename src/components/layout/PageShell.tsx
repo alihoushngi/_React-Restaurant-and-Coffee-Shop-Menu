@@ -19,19 +19,14 @@ const PageShell = ({
   searchControls,
 }: PageShellProps) => {
   return (
-    <main
-      className="min-h-screen bg-[#f5f7ff] px-3 pt-3 pb-28 text-right"
-    >
+    <main className="min-h-screen bg-white px-3 pt-3 pb-28 text-right">
       <div
         className={`mx-auto flex max-w-5xl flex-col gap-2 ${className}`.trim()}
       >
         {children}
       </div>
       {showBottomNav ? (
-        <BottomNavigation
-          menuMode={menuMode}
-          searchControls={searchControls}
-        />
+        <BottomNavigation menuMode={menuMode} searchControls={searchControls} />
       ) : null}
     </main>
   );

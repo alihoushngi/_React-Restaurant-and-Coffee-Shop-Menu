@@ -45,30 +45,28 @@
   --color-greeting: #c58d96;
 }
 
+html,
+body {
+  background-color: white;
+}
+
 .order-available-text {
   color: var(--color-order-available);
 }
 
 .category-surface {
-  background-color: var(--color-category-bg);
+  background-color: white;
+  color: var(--color-category-selected);
 }
 
 @media (hover: hover) {
   .category-item:hover:not([aria-current="true"]):not([aria-pressed="true"]) {
-    background-color: color-mix(
-      in srgb,
-      var(--color-category-bg) 88%,
-      black
-    );
+    background-color: color-mix(in srgb, var(--color-category-bg) 88%, white);
   }
 }
 
 .category-item:active:not([aria-current="true"]):not([aria-pressed="true"]) {
-  background-color: color-mix(
-    in srgb,
-    var(--color-category-bg) 80%,
-    black
-  );
+  background-color: color-mix(in srgb, var(--color-category-bg) 80%, white);
 }
 
 .category-item-selected {
@@ -93,28 +91,16 @@
 
 @media (hover: hover) {
   .product-add-button:hover:not(:disabled) {
-    background-color: color-mix(
-      in srgb,
-      var(--color-product-add) 88%,
-      white
-    );
+    background-color: color-mix(in srgb, var(--color-product-add) 88%, white);
   }
 }
 
 .product-add-button:active:not(:disabled) {
-  background-color: color-mix(
-    in srgb,
-    var(--color-product-add) 78%,
-    white
-  );
+  background-color: color-mix(in srgb, var(--color-product-add) 78%, white);
 }
 
 .product-add-button:disabled {
-  background-color: color-mix(
-    in srgb,
-    var(--color-product-add) 45%,
-    white
-  );
+  background-color: color-mix(in srgb, var(--color-product-add) 45%, white);
 }
 
 html {

@@ -20,9 +20,9 @@ const MenuStickyHeader = ({
   return (
     <div
       ref={stickyRef}
-      className="sticky top-0 z-40 -mx-3 mb-4 bg-[#f5f7ff]/95 px-3 pb-2 pt-1 backdrop-blur-md"
+      className="sticky top-0 z-40 -mx-3 mb-6 bg-white px-3 pb-5 pt-3 backdrop-blur-md"
     >
-      <div className="mb-2 flex flex-col items-center gap-1.5">
+      <div className="mb-5 flex flex-col items-center gap-5">
         <img
           src={Logo}
           alt="کافه رایو"
@@ -31,7 +31,7 @@ const MenuStickyHeader = ({
           loading="eager"
           decoding="async"
           fetchPriority="high"
-          className="h-10 w-auto object-contain"
+          className="h-16 w-auto object-contain"
         />
         <p className="menu-greeting max-w-md text-center text-sm font-medium leading-5 sm:text-sm">
           {TABLE_TIME_NOTICE}
