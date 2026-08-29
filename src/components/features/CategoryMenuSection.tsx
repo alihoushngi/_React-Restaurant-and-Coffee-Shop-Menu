@@ -1,6 +1,5 @@
 import type { Food, MenuCategory, MenuTreeNode } from "../../types/menu";
 import { SHOW_SUBCATEGORY_TABS } from "../../constants/menu";
-import { RAYO_LOGO_IMAGE } from "../../lib/menu/utils";
 import FoodCard from "./FoodCard";
 
 interface CategoryMenuSectionProps {
@@ -99,29 +98,11 @@ export default function CategoryMenuSection({
       style={{ scrollMarginTop }}
       className="category-surface rounded-[28px] p-4 shadow-sm"
     >
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex flex-col items-start gap-1 text-sm text-zinc-500">
-          <span className="text-lg font-bold text-zinc-900">
-            {category.Title}
-          </span>
-          <span>{totalFoods} آیتم</span>
-        </div>
-
-        <img
-          src={category.ImageUrl || RAYO_LOGO_IMAGE}
-          alt={category.Title}
-          width={56}
-          height={56}
-          loading="lazy"
-          className="h-14 w-14 shrink-0 rounded-2xl object-contain"
-          onError={(event) => {
-            if (event.currentTarget.src !== RAYO_LOGO_IMAGE) {
-              event.currentTarget.onerror = null;
-              event.currentTarget.src = RAYO_LOGO_IMAGE;
-            }
-          }}
-          decoding="async"
-        />
+      <div className="mb-4 flex flex-col items-start gap-1 text-sm text-zinc-500">
+        <span className="text-lg font-bold text-zinc-900">
+          {category.Title}
+        </span>
+        <span>{totalFoods} آیتم</span>
       </div>
 
       {useSubcategoryTabs ? (

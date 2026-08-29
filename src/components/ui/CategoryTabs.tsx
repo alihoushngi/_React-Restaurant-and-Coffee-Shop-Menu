@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
 import type { MenuCategory } from "../../types/menu";
-import { RAYO_LOGO_IMAGE } from "../../lib/menu/utils";
 
 interface CategoryTabsProps {
   categories: MenuCategory[];
@@ -52,9 +51,9 @@ const CategoryTabs = ({
                 flex
                 shrink-0
                 items-center
-                gap-1
                 rounded-xl
-                p-2
+                px-3
+                py-2
                 text-sm
                 font-semibold
                 transition
@@ -66,22 +65,6 @@ const CategoryTabs = ({
                 }
               `}
           >
-            <img
-              src={category.ImageUrl || RAYO_LOGO_IMAGE}
-              alt={category.Title}
-              width={36}
-              height={36}
-              loading="lazy"
-              decoding="async"
-              className="h-9 w-9 shrink-0 rounded-lg object-contain"
-              onError={(e) => {
-                if (e.currentTarget.src !== RAYO_LOGO_IMAGE) {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src = RAYO_LOGO_IMAGE;
-                }
-              }}
-            />
-
             <span>{category.Title}</span>
           </button>
         );
