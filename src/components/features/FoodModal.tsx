@@ -2,12 +2,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useRef, type FC } from "react";
 import { HiXMark } from "react-icons/hi2";
 import type { Food } from "../../types/menu";
-import {
-  formatMenuPrice,
-  isAvailabilityActive,
-} from "../../lib/menu/utils";
+import { isAvailabilityActive } from "../../lib/menu/utils";
 import ProductImage from "../ui/ProductImage";
 import ProductOrderRow from "../ui/ProductOrderRow";
+import ProductPrice from "../ui/ProductPrice";
 import { useModalBehavior } from "../../hooks/useModalBehavior";
 
 interface FoodModalProps {
@@ -84,45 +82,17 @@ const FoodModal: FC<FoodModalProps> = ({
           </div>
 
           <div className="space-y-3 p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:space-y-4 sm:p-5">
-            <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
-              <div className="min-w-0 flex-1 basis-52">
-                <p className="text-xs text-zinc-500">{food.categoryTitle}</p>
-                <h2 className="mt-1 text-xl font-bold text-zinc-900">
-                  {food.name}
-                </h2>
-                {food.variant ? (
-                  <p className="mt-1 font-semibold text-[#7a394a]">
-                    {food.variant.label} - {food.variant.description}
-                  </p>
-                ) : null}
-              </div>
-              {!hasVariants ? (
-                <div className="w-fit max-w-full shrink-0 text-center text-lg leading-7 font-bold text-black [overflow-wrap:anywhere]">
-                  {formatMenuPrice(food.price)}
-                </div>
+            <div className="min-w-0">
+              <p className="text-xs text-zinc-500">{food.categoryTitle}</p>
+              <h2 className="mt-1 text-xl font-bold text-zinc-900">
+                {food.name}
+              </h2>
+              {food.variant ? (
+                <p className="mt-1 font-semibold text-[#7a394a]">
+                  {food.variant.label} - {food.variant.description}
+                </p>
               ) : null}
             </div>
-
-            {hasVariants ? (
-              <div className="space-y-2 rounded-2xl bg-zinc-50 p-3">
-                {food.variants?.map((variant) => (
-                  <div
-                    key={variant.key}
-                    className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-xl bg-white p-3 ${
-                      variant.enabled ? "" : "opacity-50"
-                    }`}
-                    aria-disabled={!variant.enabled}
-                  >
-                    <span className="min-w-0 flex-1 font-semibold text-zinc-800">
-                      {variant.label} ({variant.description})
-                    </span>
-                    <span className="max-w-full shrink-0 text-base leading-6 font-bold text-black [overflow-wrap:anywhere]">
-                      {formatMenuPrice(variant.price)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : null}
 
             <ProductOrderRow
               productName={food.name}
@@ -132,6 +102,7 @@ const FoodModal: FC<FoodModalProps> = ({
               hasVariants={hasVariants}
               quantity={quantity}
               appearance="details"
+              price={<ProductPrice food={food} appearance="details" />}
               onAddToOrder={onAddToOrder}
               onRemoveFromOrder={onRemoveFromOrder}
             />

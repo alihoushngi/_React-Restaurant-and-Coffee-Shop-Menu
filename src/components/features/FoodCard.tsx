@@ -6,12 +6,10 @@ import {
   type MouseEvent,
 } from "react";
 import type { Food } from "../../types/menu";
-import {
-  formatMenuPrice,
-  isAvailabilityActive,
-} from "../../lib/menu/utils";
+import { isAvailabilityActive } from "../../lib/menu/utils";
 import ProductImage from "../ui/ProductImage";
 import ProductOrderRow from "../ui/ProductOrderRow";
+import ProductPrice from "../ui/ProductPrice";
 
 interface FoodCardProps {
   food: Food;
@@ -21,29 +19,6 @@ interface FoodCardProps {
   onRemoveFromOrder: (food: Food) => void;
   onOpen: (food: Food) => void;
 }
-
-const VariantPrices = ({ food }: { food: Food }) => (
-  <div className="min-w-36 max-w-full space-y-1.5 text-xs">
-    {food.variants?.map((variant) => (
-      <div
-        key={variant.key}
-        className={`flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-xl px-2 py-1.5 ${
-          variant.enabled
-            ? "bg-amber-50 text-zinc-800"
-            : "bg-zinc-100 text-zinc-400 line-through opacity-60"
-        }`}
-        aria-disabled={!variant.enabled}
-      >
-        <span className="min-w-0 flex-1 font-semibold">
-          {variant.label} ({variant.description})
-        </span>
-        <span className="max-w-full shrink-0 text-sm leading-5 font-bold text-black [overflow-wrap:anywhere]">
-          {formatMenuPrice(variant.price)}
-        </span>
-      </div>
-    ))}
-  </div>
-);
 
 const FoodCard: FC<FoodCardProps> = ({
   food,
@@ -125,25 +100,16 @@ const FoodCard: FC<FoodCardProps> = ({
         </div>
       </div>
       <div className="relative z-10 bg-white p-4 text-right">
-        <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
-          <div className="min-w-0 flex-1 basis-40">
-            <h3 className="text-base font-bold text-zinc-900">{food.name}</h3>
-            {food.variant ? (
-              <p className="mt-1 text-sm font-semibold text-[#7a394a]">
-                {food.variant.label} - {food.variant.description}
-              </p>
-            ) : null}
-            <p className="mt-1 line-clamp-2 text-sm text-zinc-500">
-              {food.shortDescription}
+        <div className="min-w-0">
+          <h3 className="text-base font-bold text-zinc-900">{food.name}</h3>
+          {food.variant ? (
+            <p className="mt-1 text-sm font-semibold text-[#7a394a]">
+              {food.variant.label} - {food.variant.description}
             </p>
-          </div>
-          {hasVariants ? (
-            <VariantPrices food={food} />
-          ) : (
-            <span className="max-w-full shrink-0 text-base leading-6 font-bold text-black [overflow-wrap:anywhere]">
-              {formatMenuPrice(food.price)}
-            </span>
-          )}
+          ) : null}
+          <p className="mt-1 line-clamp-2 text-sm text-zinc-500">
+            {food.shortDescription}
+          </p>
         </div>
         <div className="mt-4">
           <ProductOrderRow
@@ -154,6 +120,7 @@ const FoodCard: FC<FoodCardProps> = ({
             hasVariants={hasVariants}
             quantity={quantity}
             appearance="card"
+            price={<ProductPrice food={food} appearance="card" />}
             onAddToOrder={handleAddClick}
             onRemoveFromOrder={handleRemoveClick}
           />

@@ -1,4 +1,4 @@
-import type { MouseEventHandler } from "react";
+import type { MouseEventHandler, ReactNode } from "react";
 import type { MenuAvailability } from "../../types/menu";
 import AvailabilityIndicator from "./AvailabilityIndicator";
 
@@ -10,6 +10,7 @@ interface ProductOrderRowProps {
   hasVariants: boolean;
   quantity: number;
   appearance: "card" | "details";
+  price: ReactNode;
   onAddToOrder: MouseEventHandler<HTMLButtonElement>;
   onRemoveFromOrder: MouseEventHandler<HTMLButtonElement>;
 }
@@ -22,6 +23,7 @@ const ProductOrderRow = ({
   hasVariants,
   quantity,
   appearance,
+  price,
   onAddToOrder,
   onRemoveFromOrder,
 }: ProductOrderRowProps) => {
@@ -33,68 +35,72 @@ const ProductOrderRow = ({
       : "bg-zinc-100 text-zinc-700";
 
   return (
-    <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-2">
+    <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-3">
       <div className="min-w-0 flex-1 basis-32">
         <AvailabilityIndicator enabled={enabled} availability={availability} />
       </div>
 
-      {showOrderControls ? (
-        <div
-          dir="ltr"
-          role="group"
-          aria-label={`تعداد ${productName}`}
-          className={`flex shrink-0 items-center [direction:ltr] ${
-            showQuantitySelector
-              ? "gap-2 rounded-full border border-zinc-200 bg-zinc-50 p-1 shadow-sm"
-              : "border-0"
-          }`}
-        >
-          {hasVariants ? (
-            <button
-              type="button"
-              onClick={onAddToOrder}
-              className="product-add-button whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold"
-            >
-              افزودن
-            </button>
-          ) : quantity > 0 ? (
-            <>
+      <div className="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-x-3 gap-y-2">
+        <div className="min-w-0 max-w-full">{price}</div>
+
+        {showOrderControls ? (
+          <div
+            dir="ltr"
+            role="group"
+            aria-label={`تعداد ${productName}`}
+            className={`flex shrink-0 items-center [direction:ltr] ${
+              showQuantitySelector
+                ? "gap-2 rounded-full border border-zinc-200 bg-zinc-50 p-1 shadow-sm"
+                : "border-0"
+            }`}
+          >
+            {hasVariants ? (
               <button
                 type="button"
-                onClick={onRemoveFromOrder}
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-lg font-semibold ${decrementClasses}`}
-                aria-label={`کم کردن ${productName}`}
+                onClick={onAddToOrder}
+                className="product-add-button whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold"
               >
-                −
+                افزودن
               </button>
-              <span
-                className="min-w-8 text-center text-sm font-semibold text-zinc-900"
-                aria-live="polite"
-              >
-                {quantity}
-              </span>
-              {isAvailable ? (
+            ) : quantity > 0 ? (
+              <>
                 <button
                   type="button"
-                  onClick={onAddToOrder}
-                  className="product-add-button flex h-8 w-8 items-center justify-center rounded-full text-lg font-semibold"
-                  aria-label={`افزودن ${productName}`}
+                  onClick={onRemoveFromOrder}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-lg font-semibold ${decrementClasses}`}
+                  aria-label={`کم کردن ${productName}`}
                 >
-                  +
+                  −
                 </button>
-              ) : null}
-            </>
-          ) : (
-            <button
-              type="button"
-              onClick={onAddToOrder}
-              className="product-add-button whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold"
-            >
-              افزودن
-            </button>
-          )}
-        </div>
-      ) : null}
+                <span
+                  className="min-w-8 text-center text-sm font-semibold text-zinc-900"
+                  aria-live="polite"
+                >
+                  {quantity}
+                </span>
+                {isAvailable ? (
+                  <button
+                    type="button"
+                    onClick={onAddToOrder}
+                    className="product-add-button flex h-8 w-8 items-center justify-center rounded-full text-lg font-semibold"
+                    aria-label={`افزودن ${productName}`}
+                  >
+                    +
+                  </button>
+                ) : null}
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={onAddToOrder}
+                className="product-add-button whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold"
+              >
+                افزودن
+              </button>
+            )}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 };
