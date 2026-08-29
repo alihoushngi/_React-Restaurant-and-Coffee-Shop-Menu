@@ -13,7 +13,7 @@ export default function Home() {
     <main className="flex min-h-dvh flex-col bg-[#f7f1f0] px-6 pt-12 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       <div className="mx-auto flex justify-center w-full max-w-md flex-1 flex-col">
         <header className="flex flex-col items-center">
-          <p className="text-[20px] font-normal text-[#525252] uppercase italic">
+          <p className="text-[18px] font-normal text-[#525252] uppercase italic text-nowrap">
             welcome to
           </p>
           <img
