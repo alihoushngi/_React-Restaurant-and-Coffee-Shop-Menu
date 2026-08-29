@@ -60,7 +60,7 @@ const CategoryTabs = ({
 
                 ${
                   isActive
-                    ? "bg-[#496a65] text-white shadow"
+                    ? "category-item-selected shadow"
                     : "category-item category-surface text-zinc-800 shadow-sm"
                 }
               `}

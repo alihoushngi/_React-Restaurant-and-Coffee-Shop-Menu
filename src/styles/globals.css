@@ -42,6 +42,7 @@
   --color-product-add: #637d6c;
   --color-order-available: #637d6c;
   --color-category-bg: #f6f1f0;
+  --color-category-selected: #6d1e39;
 }
 
 .order-available-text {
@@ -68,6 +69,11 @@
     var(--color-category-bg) 80%,
     black
   );
+}
+
+.category-item-selected {
+  background-color: var(--color-category-selected);
+  color: white;
 }
 
 .product-add-button {
