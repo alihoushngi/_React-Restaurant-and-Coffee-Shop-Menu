@@ -44,6 +44,7 @@
   --color-category-bg: #f6f1f0;
   --color-category-selected: #6d1e39;
   --color-navbar-bg: #c58d96;
+  --color-greeting: #c58d96;
 }
 
 .order-available-text {
@@ -79,6 +80,10 @@
 
 .menu-navbar {
   background-color: var(--color-navbar-bg);
+}
+
+.menu-greeting {
+  color: var(--color-greeting);
 }
 
 .product-add-button {

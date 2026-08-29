@@ -33,7 +33,7 @@ const MenuStickyHeader = ({
           fetchPriority="high"
           className="h-10 w-10 object-contain"
         />
-        <p className="max-w-md text-center text-sm font-medium leading-5 text-[#5f2534] sm:text-sm">
+        <p className="menu-greeting max-w-md text-center text-sm font-medium leading-5 sm:text-sm">
           {TABLE_TIME_NOTICE}
         </p>
       </div>
