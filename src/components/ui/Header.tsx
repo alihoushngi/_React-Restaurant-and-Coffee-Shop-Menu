@@ -1,4 +1,4 @@
-import Logo from "@/assets/logo/logo.png";
+import Logo from "@/assets/logo/LogoNew.svg";
 
 interface HeaderProps {
   title: string;
@@ -11,10 +11,9 @@ const Header: React.FC<HeaderProps> = () => {
       <img
         src={Logo}
         alt="Logo"
-        width={1080}
-        height={1080}
-        sizes="(max-width: 768px) 100vw, 50vw"
-        className="w-14 h-14 object-cover"
+        width={78}
+        height={56}
+        className="h-14 w-auto object-contain"
       />
       {/* <p className="text-sm font-semibold text-amber-600">رایو</p> */}
       {/* <h1 className="mt-1 text-xl font-bold text-zinc-900">{title}</h1> */}

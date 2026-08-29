@@ -1,4 +1,4 @@
-import Logo from "@/assets/logo/logo.png";
+import Logo from "@/assets/logo/LogoNew.svg";
 import { TABLE_TIME_NOTICE } from "../../constants/menu";
 import type { MenuCategory } from "../../types/menu";
 import type { Ref } from "react";
@@ -26,12 +26,12 @@ const MenuStickyHeader = ({
         <img
           src={Logo}
           alt="کافه رایو"
-          width={56}
+          width={78}
           height={56}
           loading="eager"
           decoding="async"
           fetchPriority="high"
-          className="h-10 w-10 object-contain"
+          className="h-10 w-auto object-contain"
         />
         <p className="menu-greeting max-w-md text-center text-sm font-medium leading-5 sm:text-sm">
           {TABLE_TIME_NOTICE}

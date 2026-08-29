@@ -2,7 +2,7 @@ import {
   getCategoryVariantConfig,
   type CategoryVariantDefinition,
 } from "../../constants/categoryVariants";
-import RayoLogo from "../../assets/logo/logo.png";
+import RayoLogo from "../../assets/logo/LogoNew.svg";
 import type {
   FavoriteEntry,
   Food,

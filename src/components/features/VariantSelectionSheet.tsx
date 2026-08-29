@@ -70,7 +70,10 @@ const VariantSelectionSheet = ({
         <div className="mx-auto mb-4 h-1.5 w-16 rounded-full bg-zinc-200" />
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="variant-sheet-title" className="text-xl font-bold text-zinc-900">
+            <h2
+              id="variant-sheet-title"
+              className="text-xl font-bold text-zinc-900"
+            >
               {food.name}
             </h2>
             <p className="mt-1 text-sm text-zinc-500">انتخاب سایز</p>
@@ -102,11 +105,11 @@ const VariantSelectionSheet = ({
                 }`}
                 aria-disabled={!variant.enabled}
               >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="min-w-0 flex-1 font-bold text-zinc-900">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="min-w-0 truncate font-bold text-zinc-900">
                     {variant.label} ({variant.description})
                   </span>
-                  <span className="max-w-full shrink-0 text-base leading-6 font-bold text-black [overflow-wrap:anywhere]">
+                  <span className="shrink-0 whitespace-nowrap text-base leading-6 font-bold text-black">
                     {formatMenuPrice(variant.price)}
                   </span>
                 </div>
@@ -117,14 +120,14 @@ const VariantSelectionSheet = ({
                   </p>
                 ) : (
                   <div className="mt-4 flex items-center justify-between gap-3">
-                    <span className="order-available-text text-xs font-medium">
+                    <span className="order-available-text whitespace-nowrap text-xs font-medium">
                       قابل سفارش
                     </span>
                     <div
                       dir="ltr"
                       role="group"
                       aria-label={`تعداد ${variant.label} ${variant.description}`}
-                      className="flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 p-1"
+                      className="flex shrink-0 items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 p-1"
                     >
                       <button
                         type="button"

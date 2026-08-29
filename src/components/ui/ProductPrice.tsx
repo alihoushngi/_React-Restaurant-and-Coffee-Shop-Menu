@@ -13,7 +13,7 @@ const ProductPrice = ({ food, appearance }: ProductPriceProps) => {
   if (!food.variants?.length) {
     return (
       <span
-        className={`block max-w-full font-bold text-black [overflow-wrap:anywhere] ${priceClasses}`}
+        className={`whitespace-nowrap font-bold text-black ${priceClasses}`}
         data-product-price
       >
         {formatMenuPrice(food.price)}
@@ -22,20 +22,20 @@ const ProductPrice = ({ food, appearance }: ProductPriceProps) => {
   }
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col items-end gap-1 text-right">
+    <div className="flex shrink-0 flex-col items-end gap-1 text-right">
       {food.variants.map((variant) => (
         <div
           key={variant.key}
-          className={`flex min-w-0 max-w-full flex-wrap items-baseline justify-end gap-x-1.5 gap-y-0.5 ${
+          className={`flex items-baseline justify-end gap-x-1.5 whitespace-nowrap ${
             variant.enabled ? "" : "opacity-50 line-through"
           }`}
           aria-disabled={!variant.enabled}
         >
-          <span className="min-w-0 text-xs font-semibold text-zinc-600">
+          <span className="text-xs font-semibold text-zinc-600">
             {variant.label} ({variant.description})
           </span>
           <span
-            className={`max-w-full font-bold text-black [overflow-wrap:anywhere] ${priceClasses}`}
+            className={`font-bold text-black ${priceClasses}`}
             data-product-price
           >
             {formatMenuPrice(variant.price)}

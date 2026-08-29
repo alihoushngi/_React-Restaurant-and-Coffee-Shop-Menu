@@ -35,13 +35,13 @@ const ProductOrderRow = ({
       : "bg-zinc-100 text-zinc-700";
 
   return (
-    <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-3">
-      <div className="min-w-0 flex-1 basis-32">
+    <div className="flex min-w-0 items-center justify-between gap-x-3">
+      <div className="min-w-0 flex-1">
         <AvailabilityIndicator enabled={enabled} availability={availability} />
       </div>
 
-      <div className="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-x-3 gap-y-2">
-        <div className="min-w-0 max-w-full">{price}</div>
+      <div className="flex shrink-0 items-center justify-end gap-x-3">
+        <div className="shrink-0">{price}</div>
 
         {showOrderControls ? (
           <div

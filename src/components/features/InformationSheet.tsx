@@ -90,15 +90,15 @@ const InformationSheet = ({ onClose }: InformationSheetProps) => {
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:px-5">
           <section
             id="information-sheet-description"
-            className="rounded-3xl border border-amber-200/70 bg-amber-50 p-4"
+            className="rounded-3xl border border-[#6d1e39]/70 bg-[#6d1e39] p-4"
           >
             <div className="flex items-start gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-amber-700 shadow-sm">
                 <HiClock className="h-5 w-5" />
               </span>
               <div>
-                <h3 className="font-semibold text-zinc-900">مدت استفاده از میز</h3>
-                <p className="mt-1 text-sm leading-7 text-zinc-700">
+                <h3 className="font-semibold text-white">مدت استفاده از میز</h3>
+                <p className="mt-1 text-sm leading-7 text-white">
                   فقط پنج‌شنبه و جمعه شب‌ها، مدت استفاده از میز حداکثر ۲ ساعته.
                   در سایر زمان‌ها محدودیتی که نداریم هیچ، خوشحال می‌شیم بیشتر
                   میزبانتون باشیم ☺️
@@ -127,7 +127,7 @@ const InformationSheet = ({ onClose }: InformationSheetProps) => {
               <HiPhone className="h-5 w-5 shrink-0 text-[#7a394a]" />
               <span className="font-medium">تلفن</span>
               <span dir="ltr" className="mr-auto font-bold text-zinc-900">
-                26550072-021
+                ۰۲۱-۲۶۵۵۰۰۷۲
               </span>
             </a>
           </section>
