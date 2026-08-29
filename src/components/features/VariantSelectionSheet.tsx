@@ -144,7 +144,7 @@ const VariantSelectionSheet = ({
                       <button
                         type="button"
                         onClick={() => changeQuantity(variant.key, 1)}
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#7a394a] text-lg font-bold text-white shadow-sm"
+                        className="product-add-button flex h-9 w-9 items-center justify-center rounded-full text-lg font-bold shadow-sm"
                         aria-label={`افزودن تعداد ${variant.label}`}
                       >
                         +
@@ -170,7 +170,7 @@ const VariantSelectionSheet = ({
             )
           }
           disabled={totalSelected === 0}
-          className="mt-5 w-full rounded-2xl bg-[#7a394a] px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="product-add-button mt-5 w-full rounded-2xl px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
         >
           افزودن به لیست سفارش
         </button>

@@ -26,14 +26,11 @@ const ProductOrderRow = ({
   onRemoveFromOrder,
 }: ProductOrderRowProps) => {
   const showOrderControls = isAvailable || (!hasVariants && quantity > 0);
+  const showQuantitySelector = !hasVariants && quantity > 0;
   const decrementClasses =
     appearance === "card"
       ? "bg-[#7a394a] text-white"
       : "bg-zinc-100 text-zinc-700";
-  const incrementClasses =
-    appearance === "card"
-      ? "bg-green-700 text-white"
-      : "bg-[#7a394a] text-white";
 
   return (
     <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-2">
@@ -46,13 +43,17 @@ const ProductOrderRow = ({
           dir="ltr"
           role="group"
           aria-label={`تعداد ${productName}`}
-          className="flex shrink-0 items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 p-1 shadow-sm [direction:ltr]"
+          className={`flex shrink-0 items-center [direction:ltr] ${
+            showQuantitySelector
+              ? "gap-2 rounded-full border border-zinc-200 bg-zinc-50 p-1 shadow-sm"
+              : "border-0"
+          }`}
         >
           {hasVariants ? (
             <button
               type="button"
               onClick={onAddToOrder}
-              className="whitespace-nowrap rounded-full bg-green-700 px-3 py-2 text-sm font-semibold text-white"
+              className="product-add-button whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold"
             >
               افزودن
             </button>
@@ -76,7 +77,7 @@ const ProductOrderRow = ({
                 <button
                   type="button"
                   onClick={onAddToOrder}
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-lg font-semibold ${incrementClasses}`}
+                  className="product-add-button flex h-8 w-8 items-center justify-center rounded-full text-lg font-semibold"
                   aria-label={`افزودن ${productName}`}
                 >
                   +
@@ -87,7 +88,7 @@ const ProductOrderRow = ({
             <button
               type="button"
               onClick={onAddToOrder}
-              className="whitespace-nowrap rounded-full bg-green-700 px-3 py-2 text-sm font-semibold text-white"
+              className="product-add-button whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold"
             >
               افزودن
             </button>
