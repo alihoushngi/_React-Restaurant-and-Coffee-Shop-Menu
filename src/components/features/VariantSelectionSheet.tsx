@@ -103,10 +103,10 @@ const VariantSelectionSheet = ({
                 aria-disabled={!variant.enabled}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-bold text-zinc-900">
+                  <span className="min-w-0 flex-1 font-bold text-zinc-900">
                     {variant.label} ({variant.description})
                   </span>
-                  <span className="text-sm font-semibold text-amber-700">
+                  <span className="max-w-full shrink-0 text-base leading-6 font-bold text-black [overflow-wrap:anywhere]">
                     {formatMenuPrice(variant.price)}
                   </span>
                 </div>

@@ -14,11 +14,13 @@ const AvailabilityIndicator: FC<AvailabilityIndicatorProps> = ({
   const isActive = enabled && isAvailabilityActive(availability);
 
   return (
-    <div className="flex items-center gap-2 text-xs">
+    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs">
       <span
-        className={`inline-flex h-2.5 w-2.5 rounded-full ${isActive ? "bg-emerald-500" : "bg-rose-500"}`}
+        className={`inline-flex h-2.5 w-2.5 shrink-0 rounded-full ${isActive ? "bg-emerald-500" : "bg-rose-500"}`}
       />
-      <span className={isActive ? "text-emerald-600" : "text-rose-600"}>
+      <span
+        className={`min-w-0 leading-5 ${isActive ? "text-emerald-600" : "text-rose-600"}`}
+      >
         {isActive ? "قابل سفارش" : "متاسفانه در حال حاضر قابل سفارش نیست"}
       </span>
       {!isActive && availability.type === "hours" && (

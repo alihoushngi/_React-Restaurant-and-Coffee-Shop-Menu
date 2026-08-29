@@ -6,8 +6,8 @@ import {
   formatMenuPrice,
   isAvailabilityActive,
 } from "../../lib/menu/utils";
-import AvailabilityIndicator from "../ui/AvailabilityIndicator";
 import ProductImage from "../ui/ProductImage";
+import ProductOrderRow from "../ui/ProductOrderRow";
 import { useModalBehavior } from "../../hooks/useModalBehavior";
 
 interface FoodModalProps {
@@ -38,8 +38,6 @@ const FoodModal: FC<FoodModalProps> = ({
     food.enabled &&
     isAvailabilityActive(food.availability ?? { type: "always" });
   const hasVariants = Boolean(food.variants?.length);
-  const showOrderControls = isAvailable || (!hasVariants && quantity > 0);
-
   return (
     <AnimatePresence>
       <motion.div
@@ -83,58 +81,11 @@ const FoodModal: FC<FoodModalProps> = ({
                 <HiXMark className="h-5 w-5 text-zinc-700" />
               </button>
             </div>
-            {showOrderControls ? (
-              <div className="absolute bottom-4 left-4">
-              <div className="flex items-center gap-2 rounded-full border border-white/70 bg-white/90 p-1 shadow-sm">
-                {hasVariants ? (
-                  <button
-                    type="button"
-                    onClick={onAddToOrder}
-                    className="rounded-full bg-green-700 px-3 py-2 text-sm font-semibold text-white"
-                  >
-                    افزودن
-                  </button>
-                ) : quantity > 0 ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={onRemoveFromOrder}
-                      className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 text-lg font-semibold text-zinc-700"
-                      aria-label={`کم کردن ${food.name}`}
-                    >
-                      −
-                    </button>
-                    <span className="min-w-8 text-center text-sm font-semibold text-zinc-900">
-                      {quantity}
-                    </span>
-                    {isAvailable ? (
-                      <button
-                        type="button"
-                        onClick={onAddToOrder}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-[#7a394a] text-lg font-semibold text-white"
-                        aria-label={`افزودن ${food.name}`}
-                      >
-                        +
-                      </button>
-                    ) : null}
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={onAddToOrder}
-                    className="rounded-full bg-green-700 px-3 py-2 text-sm font-semibold text-white"
-                  >
-                    افزودن
-                  </button>
-                )}
-              </div>
-              </div>
-            ) : null}
           </div>
 
           <div className="space-y-3 p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:space-y-4 sm:p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+              <div className="min-w-0 flex-1 basis-52">
                 <p className="text-xs text-zinc-500">{food.categoryTitle}</p>
                 <h2 className="mt-1 text-xl font-bold text-zinc-900">
                   {food.name}
@@ -146,7 +97,7 @@ const FoodModal: FC<FoodModalProps> = ({
                 ) : null}
               </div>
               {!hasVariants ? (
-                <div className="w-fit whitespace-nowrap rounded-full bg-black px-3 py-1 text-center text-sm font-semibold text-white">
+                <div className="w-fit max-w-full shrink-0 text-center text-lg leading-7 font-bold text-black [overflow-wrap:anywhere]">
                   {formatMenuPrice(food.price)}
                 </div>
               ) : null}
@@ -157,15 +108,15 @@ const FoodModal: FC<FoodModalProps> = ({
                 {food.variants?.map((variant) => (
                   <div
                     key={variant.key}
-                    className={`flex items-center justify-between gap-3 rounded-xl bg-white p-3 ${
+                    className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-xl bg-white p-3 ${
                       variant.enabled ? "" : "opacity-50"
                     }`}
                     aria-disabled={!variant.enabled}
                   >
-                    <span className="font-semibold text-zinc-800">
+                    <span className="min-w-0 flex-1 font-semibold text-zinc-800">
                       {variant.label} ({variant.description})
                     </span>
-                    <span className="text-sm text-amber-700">
+                    <span className="max-w-full shrink-0 text-base leading-6 font-bold text-black [overflow-wrap:anywhere]">
                       {formatMenuPrice(variant.price)}
                     </span>
                   </div>
@@ -173,9 +124,16 @@ const FoodModal: FC<FoodModalProps> = ({
               </div>
             ) : null}
 
-            <AvailabilityIndicator
+            <ProductOrderRow
+              productName={food.name}
               enabled={food.enabled}
               availability={food.availability ?? { type: "always" }}
+              isAvailable={isAvailable}
+              hasVariants={hasVariants}
+              quantity={quantity}
+              appearance="details"
+              onAddToOrder={onAddToOrder}
+              onRemoveFromOrder={onRemoveFromOrder}
             />
 
             <div className="rounded-2xl bg-zinc-50 p-4">
