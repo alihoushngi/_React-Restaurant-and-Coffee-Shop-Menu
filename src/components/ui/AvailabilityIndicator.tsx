@@ -19,7 +19,7 @@ const AvailabilityIndicator: FC<AvailabilityIndicatorProps> = ({
         className={`inline-flex h-2.5 w-2.5 shrink-0 rounded-full ${isActive ? "bg-emerald-500" : "bg-rose-500"}`}
       />
       <span
-        className={`min-w-0 leading-5 ${isActive ? "text-emerald-600" : "text-rose-600"}`}
+        className={`min-w-0 leading-5 ${isActive ? "order-available-text" : "text-rose-600"}`}
       >
         {isActive ? "قابل سفارش" : "متاسفانه در حال حاضر قابل سفارش نیست"}
       </span>

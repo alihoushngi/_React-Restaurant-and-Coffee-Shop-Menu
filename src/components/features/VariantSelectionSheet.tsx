@@ -117,7 +117,7 @@ const VariantSelectionSheet = ({
                   </p>
                 ) : (
                   <div className="mt-4 flex items-center justify-between gap-3">
-                    <span className="text-xs font-medium text-emerald-600">
+                    <span className="order-available-text text-xs font-medium">
                       قابل سفارش
                     </span>
                     <div

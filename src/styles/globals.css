@@ -40,6 +40,11 @@
 :root {
   --font-vazir: "Vazirmatn", "Segoe UI", Tahoma, sans-serif;
   --color-product-add: #637d6c;
+  --color-order-available: #637d6c;
+}
+
+.order-available-text {
+  color: var(--color-order-available);
 }
 
 .product-add-button {
