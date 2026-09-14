@@ -31,7 +31,8 @@ const FoodCard: FC<FoodCardProps> = ({
   const isAvailable =
     food.enabled &&
     isAvailabilityActive(food.availability ?? { type: "always" });
-  const hasVariants = Boolean(food.variants?.length);
+  const hasVariants = (food.variants?.length ?? 0) > 0;
+  const showImage = !food.hideImage;
 
   const handleAddClick = useCallback(
     (event: MouseEvent<HTMLButtonElement>) => {
@@ -49,7 +50,9 @@ const FoodCard: FC<FoodCardProps> = ({
     [food, onRemoveFromOrder],
   );
 
-  const handleOpen = useCallback(() => onOpen(food), [food, onOpen]);
+  const handleOpen = useCallback(() => {
+    onOpen(food);
+  }, [food, onOpen]);
 
   const handleCardKeyDown = useCallback(
     (event: KeyboardEvent<HTMLElement>) => {
@@ -77,28 +80,30 @@ const FoodCard: FC<FoodCardProps> = ({
       }`}
       data-order-disabled={!isAvailable || undefined}
     >
-      <div className="relative flex h-80 items-center justify-center overflow-hidden bg-zinc-100">
-        <ProductImage
-          src={food.image}
-          hasRealImage={food.hasRealImage}
-          alt={food.name}
-          className="h-full w-full transition-transform duration-500 group-hover:scale-105"
-          logoClassName="p-12 sm:p-16"
-          loading={imagePriority ? "eager" : "lazy"}
-          fetchPriority={imagePriority ? "high" : "auto"}
-          decoding="async"
-          width={640}
-          height={480}
-        />
-        <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
-          <div className="max-w-[75%] rounded-2xl bg-[#7a394a] px-3 py-1.5 text-right text-white shadow-sm">
-            <span className="block text-[10px] opacity-80">دسته بندی</span>
-            <span className="block truncate text-xs font-semibold">
-              {food.categoryTitle}
-            </span>
+      {showImage ? (
+        <div className="relative flex h-80 items-center justify-center overflow-hidden bg-zinc-100">
+          <ProductImage
+            src={food.image}
+            hasRealImage={food.hasRealImage}
+            alt={food.name}
+            className="h-full w-full transition-transform duration-500 group-hover:scale-105"
+            logoClassName="p-12 sm:p-16"
+            loading={imagePriority ? "eager" : "lazy"}
+            fetchPriority={imagePriority ? "high" : "auto"}
+            decoding="async"
+            width={640}
+            height={480}
+          />
+          <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
+            <div className="max-w-[75%] rounded-2xl bg-[#7a394a] px-3 py-1.5 text-right text-white shadow-sm">
+              <span className="block text-[10px] opacity-80">دسته بندی</span>
+              <span className="block truncate text-xs font-semibold">
+                {food.categoryTitle}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
       <div className="relative z-10 bg-white p-4 text-right">
         <div className="min-w-0">
           <h3 className="text-base font-bold text-zinc-900">{food.name}</h3>

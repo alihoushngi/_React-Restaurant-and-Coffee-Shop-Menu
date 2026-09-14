@@ -1,4 +1,8 @@
-import type { Food, MenuCategory, MenuTreeNode } from "../../types/menu";
+import type {
+  Food,
+  MenuCategory,
+  MenuTreeNode,
+} from "../../types/menu";
 import { SHOW_SUBCATEGORY_TABS } from "../../constants/menu";
 import FoodCard from "./FoodCard";
 
@@ -43,8 +47,14 @@ const FoodGrid = ({
     );
   }
 
+  const stackVertically = foods.some((food) => food.hideImage);
+
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div
+      className={
+        stackVertically ? "flex flex-col gap-4" : "grid gap-4 md:grid-cols-2"
+      }
+    >
       {foods.map((food, foodIndex) => (
         <FoodCard
           key={food.orderKey}

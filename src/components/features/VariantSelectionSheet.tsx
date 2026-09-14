@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { HiXMark } from "react-icons/hi2";
 import type { Food, FoodVariantQuantity } from "../../types/menu";
-import { formatMenuPrice, toPersianDigits } from "../../lib/menu/utils";
+import {
+  formatMenuPrice,
+  toPersianDigits,
+} from "../../lib/menu/utils";
 import { useModalBehavior } from "../../hooks/useModalBehavior";
 
 interface VariantSelectionSheetProps {
@@ -16,7 +19,8 @@ const VariantSelectionSheet = ({
   onClose,
   onConfirm,
 }: VariantSelectionSheetProps) => {
-  const variants = food.variants ?? [];
+  const variants = useMemo(() => food.variants ?? [], [food.variants]);
+  const presentation = food.variantPresentation;
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const [quantities, setQuantities] = useState<Record<string, number>>(() =>
@@ -34,9 +38,17 @@ const VariantSelectionSheet = ({
       total + (variant.enabled ? (quantities[variant.key] ?? 0) : 0),
     0,
   );
+  const totalPrice = variants.reduce((total, variant) => {
+    const quantity = variant.enabled ? (quantities[variant.key] ?? 0) : 0;
+    return total + (variant.price ?? 0) * quantity;
+  }, 0);
+  const variantsByKey = useMemo(
+    () => new Map(variants.map((variant) => [variant.key, variant])),
+    [variants],
+  );
 
   const changeQuantity = (variantKey: string, delta: number) => {
-    const variant = variants.find((item) => item.key === variantKey);
+    const variant = variantsByKey.get(variantKey);
     if (!variant?.enabled) return;
 
     setQuantities((current) => ({
@@ -61,55 +73,73 @@ const VariantSelectionSheet = ({
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 220, damping: 24 }}
-        className="absolute inset-x-0 bottom-0 mx-auto max-h-[88dvh] w-full max-w-xl overflow-y-auto overscroll-contain rounded-t-[28px] bg-white p-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl outline-none sm:p-5"
+        className="absolute inset-x-0 bottom-0 mx-auto flex max-h-[88dvh] w-full max-w-xl flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl outline-none"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="variant-sheet-title"
       >
-        <div className="mx-auto mb-4 h-1.5 w-16 rounded-full bg-zinc-200" />
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2
-              id="variant-sheet-title"
-              className="text-xl font-bold text-zinc-900"
+        <header className="shrink-0 px-4 pt-3 sm:px-5">
+          <div className="mx-auto mb-4 h-1.5 w-16 rounded-full bg-zinc-200" />
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2
+                id="variant-sheet-title"
+                className="text-xl font-bold text-zinc-900"
+              >
+                {presentation?.sheetTitle ?? food.name}
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-zinc-500">
+                {presentation?.sheetSubtitle ?? "انتخاب سایز"}
+              </p>
+            </div>
+            <button
+              ref={closeButtonRef}
+              type="button"
+              onClick={onClose}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-700 transition hover:bg-zinc-200"
+              aria-label={`بستن ${presentation?.sheetTitle ?? "انتخاب محصول"}`}
             >
-              {food.name}
-            </h2>
-            <p className="mt-1 text-sm text-zinc-500">انتخاب سایز</p>
+              <HiXMark className="h-5 w-5" />
+            </button>
           </div>
-          <button
-            ref={closeButtonRef}
-            type="button"
-            onClick={onClose}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100"
-            aria-label="بستن انتخاب سایز"
-          >
-            <HiXMark className="h-5 w-5" />
-          </button>
-        </div>
 
-        <div className="mt-5 space-y-3">
+          <div className="mt-4 flex items-center justify-between border-b border-zinc-100 pb-3 text-xs text-zinc-500">
+            <span>{toPersianDigits(variants.length)} گزینه</span>
+            <span aria-live="polite">
+              {totalSelected > 0
+                ? `${toPersianDigits(totalSelected)} مورد انتخاب شده`
+                : "هنوز موردی انتخاب نشده"}
+            </span>
+          </div>
+        </header>
+
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-4 sm:px-5">
           {variants.map((variant) => {
             const quantity = variant.enabled
               ? (quantities[variant.key] ?? 0)
               : 0;
+            const optionTitle = `${variant.label} (${variant.description})`;
 
             return (
               <div
                 key={variant.key}
-                className={`rounded-2xl border p-4 transition ${
+                className={`rounded-2xl border p-4 transition-colors ${
                   variant.enabled
-                    ? "border-zinc-200 bg-white"
+                    ? quantity > 0
+                      ? "border-[#7a394a]/35 bg-[#fff7f4]"
+                      : "border-zinc-200 bg-white"
                     : "border-zinc-100 bg-zinc-50 opacity-60"
                 }`}
                 aria-disabled={!variant.enabled}
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="min-w-0 truncate font-bold text-zinc-900">
-                    {variant.label} ({variant.description})
-                  </span>
-                  <span className="shrink-0 whitespace-nowrap text-base leading-6 font-bold text-black">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-bold leading-6 text-zinc-900">
+                      {optionTitle}
+                    </h3>
+                  </div>
+                  <span className="shrink-0 whitespace-nowrap text-sm leading-6 font-bold text-black">
                     {formatMenuPrice(variant.price)}
                   </span>
                 </div>
@@ -126,7 +156,7 @@ const VariantSelectionSheet = ({
                     <div
                       dir="ltr"
                       role="group"
-                      aria-label={`تعداد ${variant.label} ${variant.description}`}
+                      aria-label={`تعداد ${presentation?.optionLabel ?? "گزینه"} ${optionTitle}`}
                       className="flex shrink-0 items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 p-1"
                     >
                       <button
@@ -134,7 +164,7 @@ const VariantSelectionSheet = ({
                         onClick={() => changeQuantity(variant.key, -1)}
                         disabled={quantity === 0}
                         className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-lg font-bold text-[#7a394a] shadow-sm disabled:cursor-not-allowed disabled:opacity-35"
-                        aria-label={`کم کردن تعداد ${variant.label}`}
+                        aria-label={`کم کردن تعداد ${optionTitle}`}
                       >
                         −
                       </button>
@@ -148,7 +178,7 @@ const VariantSelectionSheet = ({
                         type="button"
                         onClick={() => changeQuantity(variant.key, 1)}
                         className="product-add-button flex h-9 w-9 items-center justify-center rounded-full text-lg font-bold shadow-sm"
-                        aria-label={`افزودن تعداد ${variant.label}`}
+                        aria-label={`افزودن تعداد ${optionTitle}`}
                       >
                         +
                       </button>
@@ -160,23 +190,43 @@ const VariantSelectionSheet = ({
           })}
         </div>
 
-        <button
-          type="button"
-          onClick={() =>
-            onConfirm(
-              variants.flatMap((variant) => {
-                const quantity = variant.enabled
-                  ? (quantities[variant.key] ?? 0)
-                  : 0;
-                return quantity > 0 ? [{ variant, quantity }] : [];
-              }),
-            )
-          }
-          disabled={totalSelected === 0}
-          className="product-add-button mt-5 w-full rounded-2xl px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          افزودن به لیست سفارش
-        </button>
+        <footer className="shrink-0 border-t border-zinc-100 bg-white px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(0,0,0,0.05)] sm:px-5">
+          <div className="mb-3 flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs text-zinc-500">جمع انتخاب‌ها</p>
+              <p className="mt-0.5 font-bold text-zinc-900">
+                {toPersianDigits(totalSelected)} مورد
+              </p>
+            </div>
+            {totalSelected > 0 ? (
+              <div className="text-left">
+                <p className="text-xs text-zinc-500">مبلغ کل</p>
+                <p className="mt-0.5 font-bold text-zinc-900">
+                  {formatMenuPrice(totalPrice)}
+                </p>
+              </div>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            onClick={() =>
+              onConfirm(
+                variants.flatMap((variant) => {
+                  const quantity = variant.enabled
+                    ? (quantities[variant.key] ?? 0)
+                    : 0;
+                  return quantity > 0 ? [{ variant, quantity }] : [];
+                }),
+              )
+            }
+            disabled={totalSelected === 0}
+            className="product-add-button min-h-12 w-full rounded-2xl px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {totalSelected > 0
+              ? `افزودن ${toPersianDigits(totalSelected)} مورد به لیست سفارش`
+              : "افزودن به لیست سفارش"}
+          </button>
+        </footer>
       </motion.div>
     </motion.div>
   );

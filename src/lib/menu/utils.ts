@@ -1,6 +1,8 @@
 import {
   getCategoryVariantConfig,
   type CategoryVariantDefinition,
+  type CollectionCategoryVariantConfig,
+  type PairedCategoryVariantConfig,
 } from "../../constants/categoryVariants";
 import RayoLogo from "../../assets/logo/LogoNew.svg";
 import type {
@@ -145,14 +147,12 @@ const createVariantPairingKey = (
     .join(" ");
 };
 
-const buildVariantFoods = (
+const buildPairedVariantFoods = (
   parentCategory: MenuCategory,
   itemsByCategory: ReadonlyMap<number, MenuItem[]>,
   menuMode: MenuMode,
+  config: PairedCategoryVariantConfig,
 ): Food[] => {
-  const config = getCategoryVariantConfig(parentCategory.Id);
-  if (!config) return [];
-
   const groups = new Map<string, Map<string, FoodVariant>>();
 
   for (const definition of config.variants) {
@@ -231,8 +231,52 @@ const buildVariantFoods = (
         .map((variant) => variant.searchText)
         .join(" "),
       variants,
+      variantPresentation: {
+        style: "paired",
+        actionLabel: "انتخاب سایز",
+        sheetTitle: representative?.title ?? "انتخاب محصول",
+        sheetSubtitle: "سایز و تعداد موردنظر را انتخاب کن",
+        optionLabel: "سایز",
+      },
     } satisfies Food;
   });
+};
+
+const buildCollectionVariantFoods = (
+  parentCategory: MenuCategory,
+  items: MenuItem[],
+  menuMode: MenuMode,
+  config: CollectionCategoryVariantConfig,
+): Food[] => {
+  const standaloneTitles = new Set(
+    (config.standaloneItemTitles ?? []).map(normalizePersianText),
+  );
+  const collectionItems = items.filter(
+    (item) => !standaloneTitles.has(normalizePersianText(item.Title)),
+  );
+
+  if (collectionItems.length === 0) return [];
+
+  const foods = collectionItems.map((item) =>
+    mapMenuItemToFood(item, {
+      menuMode,
+      categoryTitle: parentCategory.Title,
+    }),
+  );
+  const heroFood = foods.find((food) => food.hasRealImage) ?? foods[0];
+
+  return foods.map((food, index) =>
+    index === 0
+      ? {
+          ...food,
+          image: heroFood.image,
+          hasRealImage: heroFood.hasRealImage,
+        }
+      : {
+          ...food,
+          hideImage: true,
+        },
+  );
 };
 
 export const buildMenuTree = (
@@ -263,21 +307,49 @@ export const buildMenuTree = (
     ancestorIds: ReadonlySet<number>,
   ): MenuTreeNode => {
     const config = getCategoryVariantConfig(category.Id);
-    const directFoods = (itemsByCategory.get(category.Id) ?? []).map((item) =>
-      mapMenuItemToFood(item, {
-        menuMode,
-        categoryTitle: resolveCategoryTitle(categoriesById, item.CategoryId),
-      }),
+    const directItems = itemsByCategory.get(category.Id) ?? [];
+    const standaloneTitles = new Set(
+      config?.mode === "collection"
+        ? (config.standaloneItemTitles ?? []).map(normalizePersianText)
+        : [],
     );
+    const directFoods = directItems
+      .filter(
+        (item) =>
+          config?.mode !== "collection" ||
+          standaloneTitles.has(normalizePersianText(item.Title)),
+      )
+      .map((item) =>
+        mapMenuItemToFood(item, {
+          menuMode,
+          categoryTitle: resolveCategoryTitle(categoriesById, item.CategoryId),
+        }),
+      );
 
     if (config) {
+      const variantFoods =
+        config.mode === "collection"
+          ? buildCollectionVariantFoods(
+              category,
+              directItems,
+              menuMode,
+              config,
+            )
+          : buildPairedVariantFoods(
+              category,
+              itemsByCategory,
+              menuMode,
+              config,
+            );
+      const standaloneFoods =
+        config.mode === "collection" && variantFoods.length > 0
+          ? directFoods.map((food) => ({ ...food, hideImage: true }))
+          : directFoods;
+
       return {
         category,
         categorySearchText: normalizePersianText(category.Title),
-        foods: [
-          ...directFoods,
-          ...buildVariantFoods(category, itemsByCategory, menuMode),
-        ],
+        foods: [...variantFoods, ...standaloneFoods],
         subcategories: [],
       };
     }
@@ -359,6 +431,7 @@ export const flattenOrderableFoods = (menuTree: MenuTreeNode[]) => {
           summary: variant.summary,
           searchText: variant.searchText,
           variants: undefined,
+          variantPresentation: undefined,
           variant: {
             key: variant.key,
             label: variant.label,

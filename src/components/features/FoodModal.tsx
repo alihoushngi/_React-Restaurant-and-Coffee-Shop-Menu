@@ -59,27 +59,40 @@ const FoodModal: FC<FoodModalProps> = ({
           aria-modal="true"
           aria-label={food.name}
         >
-          <div className="relative h-64 w-full overflow-hidden rounded-t-[28px] bg-zinc-100 sm:h-80">
-            <ProductImage
-              src={food.image}
-              hasRealImage={food.hasRealImage}
-              alt={food.name}
-              className="h-full w-full"
-              logoClassName="p-10 sm:p-16"
-              width={640}
-              height={480}
-            />
-            <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
+          {food.hideImage ? (
+            <div className="flex items-center justify-end p-4 pb-0">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-sm"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 shadow-sm"
                 aria-label="بستن جزئیات محصول"
               >
                 <HiXMark className="h-5 w-5 text-zinc-700" />
               </button>
             </div>
-          </div>
+          ) : (
+            <div className="relative h-64 w-full overflow-hidden rounded-t-[28px] bg-zinc-100 sm:h-80">
+              <ProductImage
+                src={food.image}
+                hasRealImage={food.hasRealImage}
+                alt={food.name}
+                className="h-full w-full"
+                logoClassName="p-10 sm:p-16"
+                width={640}
+                height={480}
+              />
+              <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-sm"
+                  aria-label="بستن جزئیات محصول"
+                >
+                  <HiXMark className="h-5 w-5 text-zinc-700" />
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-3 p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:space-y-4 sm:p-5">
             <div className="min-w-0">

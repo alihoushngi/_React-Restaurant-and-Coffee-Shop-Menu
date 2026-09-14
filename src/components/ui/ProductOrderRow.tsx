@@ -8,6 +8,7 @@ interface ProductOrderRowProps {
   availability: MenuAvailability;
   isAvailable: boolean;
   hasVariants: boolean;
+  variantActionLabel?: string;
   quantity: number;
   appearance: "card" | "details";
   price: ReactNode;
@@ -21,6 +22,7 @@ const ProductOrderRow = ({
   availability,
   isAvailable,
   hasVariants,
+  variantActionLabel,
   quantity,
   appearance,
   price,
@@ -33,6 +35,31 @@ const ProductOrderRow = ({
     appearance === "card"
       ? "bg-[#7a394a] text-white"
       : "bg-zinc-100 text-zinc-700";
+
+  if (hasVariants && variantActionLabel) {
+    return (
+      <div className="space-y-3">
+        <div className="flex min-w-0 items-end justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <AvailabilityIndicator
+              enabled={enabled}
+              availability={availability}
+            />
+          </div>
+          <div className="shrink-0">{price}</div>
+        </div>
+        {isAvailable ? (
+          <button
+            type="button"
+            onClick={onAddToOrder}
+            className="product-add-button min-h-11 w-full rounded-2xl px-4 py-2.5 text-sm font-bold"
+          >
+            {variantActionLabel}
+          </button>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-w-0 items-center justify-between gap-x-3">
@@ -60,7 +87,7 @@ const ProductOrderRow = ({
                 onClick={onAddToOrder}
                 className="product-add-button whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold"
               >
-                افزودن
+                {variantActionLabel ?? "افزودن"}
               </button>
             ) : quantity > 0 ? (
               <>

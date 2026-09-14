@@ -91,6 +91,8 @@ export interface Food {
 
   hasRealImage: boolean;
 
+  hideImage?: boolean;
+
   shortDescription: string;
 
   price: number | null;
@@ -112,6 +114,20 @@ export interface Food {
   variants?: FoodVariant[];
 
   variant?: FoodVariantMeta;
+
+  variantPresentation?: FoodVariantPresentation;
+}
+
+export interface FoodVariantPresentation {
+  style: "paired";
+
+  actionLabel: string;
+
+  sheetTitle: string;
+
+  sheetSubtitle: string;
+
+  optionLabel: string;
 }
 
 export interface FoodVariantMeta {
