@@ -119,7 +119,7 @@ export const mapMenuItemToFood = (
     name,
     image: hasRealImage ? imageUrl : RAYO_LOGO_IMAGE,
     hasRealImage,
-    shortDescription: cleanDisplayText(item.Summary, "بدون توضیحات"),
+    shortDescription: cleanDisplayText(item.Summary, ""),
     price:
       typeof item.Price === "number" && Number.isFinite(item.Price)
         ? item.Price
@@ -218,7 +218,7 @@ const buildPairedVariantFoods = (
       image: representative?.image ?? RAYO_LOGO_IMAGE,
       hasRealImage: representative?.hasRealImage ?? false,
       shortDescription:
-        representative?.shortDescription ?? "بدون توضیحات",
+        representative?.shortDescription ?? "",
       price: representative?.price ?? null,
       enabled,
       favoriteEnabled: enabled,
