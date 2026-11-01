@@ -1,193 +1,104 @@
 # Rayo Cafe Menu
 
-Modern mobile-first Persian digital menu for cafes.
+Persian RTL cafe and restaurant menu built with React 19, TypeScript, Vite 8, and Tailwind CSS 4. Current version: **3.3.1**.
 
----
+## Getting started
 
-# Overview
+Use Node.js 22.18+ (also required for the menu logic check).
 
-Rayo is a frontend-only digital menu system designed for cafes and restaurants.
+```sh
+npm ci
+npm run dev
+```
 
-Users can browse categories, view food details, save favorites, and check food availability.
+Development requests to `/api/data` are proxied to `https://rayocafe.ir` through Vite. Menu data comes from the backend API, not local JSON fixtures.
 
-No backend is used.
+## Build and deployment
 
-All data is stored locally using JSON files.
+Set the production API base before building, for example in a local `.env` file:
 
----
+```dotenv
+VITE_API_BASE=https://rayocafe.ir/api/data
+```
 
-# Features
+```sh
+npm run build
+npm run preview
+```
 
-✅ Mobile-first design
-✅ Persian RTL layout
-✅ Light theme UI
-✅ SnappFood inspired design
-✅ Food categories
-✅ Category filtering
-✅ Food detail modal
-✅ Favorite foods
-✅ localStorage persistence
-✅ Search system
-✅ Time-based availability
-✅ Category availability rules
-✅ Food availability rules
-✅ Smooth animations
-✅ Responsive design
+The production files are generated in `dist/`. Configure the host to serve `index.html` for client-side routes. The production API must allow requests from the deployed frontend origin when hosted on a different origin. Vite's development proxy does not run in production.
 
----
+## Features
 
-# Tech Stack
+- Separate dine-in and delivery menus, category navigation, and availability rules.
+- Persian RTL layout, responsive cards, square large images, and sticky menu navigation positioned 5px from the top after scrolling.
+- Two-person, dietary, and vegetarian badges; dietary and vegetarian filters.
+- Weekly popular items and recommended drinks, shown only when matching API items exist.
+- Search bottom sheet with suggested items, search across all items, no result prices, and no automatic keyboard opening.
+- Item details, variants, and local favorites/order quantities separated by menu mode.
+- Recommended drinks inside item details, controlled by the item's category.
 
-- React / Next.js
-- TypeScript
-- TailwindCSS
-- Framer Motion
-- LocalStorage
-- Static JSON architecture
+Favorites and quantities persist locally. They do not submit an order or process payment. The survey navigation control is currently disabled because no destination has been configured.
 
----
+## API contract
 
-# Folder Structure
+Menu endpoints relative to the API base:
 
+- `DineInCategory`
+- `DineInItems`
+- `DeliveryCategory`
+- `DeliveryItems`
+
+Feature flags activate only for the boolean value `true`; missing, null, and string values do not activate them.
+
+| Field | Entity | Behavior |
+| --- | --- | --- |
+| `IsForTwo` | Item | Show the two-person badge. |
+| `IsDietary` | Item | Show the dietary badge and include the item in the dietary filter. |
+| `IsVegetarian` | Item | Show the vegetarian badge and include the item in the vegetarian filter. |
+| `IsPopular` | Item | Include the item in the weekly popular section. |
+| `IsRecommendedDrink` | Item | Include the item among recommended drinks. |
+| `ShowInSearch` | Item | Suggest the item when the search query is empty. Typed queries search all items. |
+| `SuggestDrink` | Category | Allow recommended drinks in details of items belonging to this category. |
+| `DisplayType` | Category | Select the card layout described below. |
+
+Category `DisplayType` values:
+
+- `LargeImage`: large square image (also the fallback for missing or unknown values).
+- `SmallImageLeft`: small image on the physical left.
+- `NoImage`: no image.
+- `FirstItemImage`: large image for the first item; remaining items have no image.
+
+The detail recommendation section requires both `SuggestDrink === true` on the selected item's category and items with `IsRecommendedDrink === true` in the same menu mode. The selected item itself is excluded. Empty sections are omitted entirely. Per-food drink ID associations are not implemented.
+
+## Project layout
+
+```text
 src/
+  components/features/  Menu cards, filters, search, featured rails, item details
+  components/layout/    Shared navigation
+  components/ui/        Shared UI and category tabs
+  hooks/                API queries, favorites, availability, modal behavior
+  lib/menu/             Menu mapping, flag handling, layout helpers
+  pages/                Application screens
+  services/menu/        Menu API services
+  types/                API and frontend menu types
+scripts/
+  verify-menu-logic.mjs  Runnable menu logic assertions
+```
 
-components/
+Local customer briefs, screenshots, and browser QA evidence live in `task/`, which is excluded from Git.
 
-CategoryTabs.tsx
+## Validation
 
-FoodCard.tsx
+```sh
+npm run lint
+npm run build
+node scripts/verify-menu-logic.mjs
+```
 
-FoodModal.tsx
+The logic check covers strict flags, badges, display types, filters, variants, featured-item deduplication, and search suggestions. It does not replace browser or live API testing.
 
-FavoriteButton.tsx
+## 3.3.1
 
-AvailabilityBadge.tsx
-
-Header.tsx
-
-BottomNavigation.tsx
-
-hooks/
-
-useFavorites.ts
-
-useAvailability.ts
-
-useMenuFilter.ts
-
-data/
-
-categories.json
-
-foods.json
-
-food-details.json
-
-utils/
-
-time-utils.ts
-
-storage.ts
-
-types/
-
-menu.types.ts
-
----
-
-# Data Structure
-
-## categories.json
-
-[
-{
-"id": "coffee",
-"title": "قهوه",
-"icon": "coffee",
-"alwaysAvailable": true
-}
-]
-
-## foods.json
-
-[
-{
-"id": "espresso",
-"categoryId": "coffee",
-"name": "اسپرسو",
-"price": 90000,
-"isPopular": true
-}
-]
-
-## food-details.json
-
-[
-{
-"foodId": "espresso",
-"description": "...",
-"ingredients": ["Coffee Beans"],
-"preparationTime": 5
-}
-]
-
----
-
-# Main Screens
-
-- Home Menu
-- Food Category List
-- Food Cards
-- Food Details Modal
-- Favorite Foods Page
-
----
-
-# UX Principles
-
-- Fast interactions
-- Minimal clicks
-- Easy navigation
-- Smooth scrolling
-- Sticky category navigation
-- Large touch areas
-- Optimized for mobile devices
-
----
-
-# Design Inspiration
-
-Inspired by SnappFood menu experience.
-
-Design principles:
-
-- clean cards
-- large images
-- rounded corners
-- soft shadows
-- white background
-- Persian typography
-
----
-
-# Development Rules
-
-- No hardcoded data inside components
-- Strong TypeScript everywhere
-- Reusable components only
-- Avoid duplicated logic
-- Clean architecture
-- Scalable structure
-
----
-
-# Future Expansion
-
-Possible future features:
-
-- Online ordering
-- Payment system
-- Backend API
-- Admin dashboard
-- QR code menu access
-- Multi-language support
+Documents the API-backed menu, refreshed card/header/navigation design, search and dietary filters, conditional featured sections, and category-controlled detail drink recommendations. Synchronizes the package and lockfile versions.
