@@ -1,3 +1,9 @@
+export type CategoryDisplayType =
+  | "LargeImage"
+  | "SmallImageLeft"
+  | "NoImage"
+  | "FirstItemImage";
+
 export interface MenuCategory {
   Id: number;
   Title: string;
@@ -8,4 +14,6 @@ export interface MenuCategory {
   Delivery: boolean;
   HasChild: boolean;
   ImageUrl: string;
+  DisplayType?: CategoryDisplayType | string | null;
+  SuggestDrink?: boolean | null;
 }

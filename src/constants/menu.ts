@@ -7,5 +7,7 @@
 export const SHOW_SUBCATEGORY_TABS = true;
 
 /** Shown under the sticky logo on dine-in and delivery menus. */
+export const WELCOME_TITLE = "به رایو خوش آمدید";
+
 export const TABLE_TIME_NOTICE =
-  "مهمان عزیز رایو، حداکثر زمان استفاده از میز دو ساعت است";
+  "شب‌های تعطیل و آخر هفته، برای اینکه بتونیم میزبان مهمون‌های بیشتری باشیم، زمان استفاده از میز تا ۲ ساعته. بقیه وقت‌ها خوشحال می‌شیم بیشتر کنارمون بمونید 💚";

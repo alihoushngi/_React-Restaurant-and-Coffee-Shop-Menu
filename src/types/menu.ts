@@ -1,3 +1,9 @@
+export type CategoryDisplayType =
+  | "LargeImage"
+  | "SmallImageLeft"
+  | "NoImage"
+  | "FirstItemImage";
+
 export interface MenuCategory {
   Id: number;
 
@@ -16,6 +22,9 @@ export interface MenuCategory {
   HasChild: boolean;
 
   ImageUrl: string;
+
+  DisplayType?: CategoryDisplayType | string | null;
+  SuggestDrink?: boolean | null;
 }
 
 export interface MenuItem {
@@ -48,6 +57,18 @@ export interface MenuItem {
   ImageUrl: string;
 
   IsNew?: boolean;
+
+  IsForTwo?: boolean | null;
+
+  IsDietary?: boolean | null;
+
+  IsVegetarian?: boolean | null;
+
+  IsPopular?: boolean | null;
+
+  IsRecommendedDrink?: boolean | null;
+
+  ShowInSearch?: boolean | null;
 }
 
 export type MenuMode = "delivery" | "dineIn";
@@ -99,7 +120,17 @@ export interface Food {
 
   enabled: boolean;
 
+  isForTwo?: boolean;
+
+  isDietary?: boolean;
+
+  isVegetarian?: boolean;
+
   isPopular?: boolean;
+
+  isRecommendedDrink?: boolean;
+
+  showInSearch?: boolean;
 
   favoriteEnabled?: boolean;
 
@@ -117,6 +148,10 @@ export interface Food {
 
   variantPresentation?: FoodVariantPresentation;
 }
+
+export type DietaryFilter = "all" | "vegetarian" | "dietary";
+
+export type FoodImageLayout = "large" | "small-left" | "none";
 
 export interface FoodVariantPresentation {
   style: "paired";
@@ -162,6 +197,18 @@ export interface FoodVariant extends FoodVariantMeta {
   rank?: number;
 
   searchText: string;
+
+  isForTwo?: boolean;
+
+  isDietary?: boolean;
+
+  isVegetarian?: boolean;
+
+  isPopular?: boolean;
+
+  isRecommendedDrink?: boolean;
+
+  showInSearch?: boolean;
 }
 
 export interface FavoriteEntry {

@@ -8,6 +8,7 @@ interface SearchInputProps {
   autoFocus?: boolean;
   placeholder?: string;
   compact?: boolean;
+  showIcon?: boolean;
 }
 
 const SearchInput = ({
@@ -18,14 +19,15 @@ const SearchInput = ({
   autoFocus = false,
   placeholder = "جستجو در منو...",
   compact = false,
+  showIcon = true,
 }: SearchInputProps) => {
   return (
     <div
-      className={`flex w-full min-w-0 items-center rounded-2xl border border-zinc-200 bg-white shadow-sm ${
+      className={`flex w-full min-w-0 items-center rounded-2xl border border-[#d9d0d5] bg-[#fcf9fa] ${
         compact ? "gap-1.5 px-2 py-2" : "gap-3 px-4 py-3"
       }`}
     >
-      <HiMagnifyingGlass className="h-5 w-5 shrink-0 text-zinc-400" />
+      {showIcon ? <HiMagnifyingGlass className="h-5 w-5 shrink-0 text-zinc-400" /> : null}
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}

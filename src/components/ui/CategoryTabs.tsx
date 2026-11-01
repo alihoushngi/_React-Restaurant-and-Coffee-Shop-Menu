@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import type { MenuCategory } from "../../types/menu";
 
 interface CategoryTabsProps {
-  categories: MenuCategory[];
+  categories: Pick<MenuCategory, "Id" | "Title" | "ParentId">[];
   activeCategoryId: string;
   onSelect: (id: string) => void;
 }
@@ -24,10 +24,12 @@ const CategoryTabs = ({
     ) as HTMLElement | null;
 
     if (activeBtn && containerRef.current) {
-      activeBtn.scrollIntoView({
+      const container = containerRef.current;
+      const buttonRect = activeBtn.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      container.scrollBy({
+        left: buttonRect.left + buttonRect.width / 2 - containerRect.left - containerRect.width / 2,
         behavior: "smooth",
-        block: "nearest",
-        inline: "center",
       });
     }
   }, [activeCategoryId]);

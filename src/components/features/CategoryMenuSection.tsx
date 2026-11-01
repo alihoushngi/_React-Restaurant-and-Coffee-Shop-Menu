@@ -1,9 +1,15 @@
 import type {
+  DietaryFilter,
   Food,
   MenuCategory,
   MenuTreeNode,
 } from "../../types/menu";
 import { SHOW_SUBCATEGORY_TABS } from "../../constants/menu";
+import {
+  filterFoodsByDietary,
+  resolveCategoryDisplayType,
+  resolveFoodImageLayout,
+} from "../../lib/menu/utils";
 import FoodCard from "./FoodCard";
 
 interface CategoryMenuSectionProps {
@@ -13,6 +19,7 @@ interface CategoryMenuSectionProps {
   index: number;
   sectionRef: (element: HTMLDivElement | null) => void;
   scrollMarginTop: number;
+  dietaryFilter: DietaryFilter;
   showAllSubcategories?: boolean;
   activeSubId?: number;
   onSubSelect?: (subcategoryId: number) => void;
@@ -24,6 +31,7 @@ interface CategoryMenuSectionProps {
 
 interface FoodGridProps {
   foods: Food[];
+  displayType: ReturnType<typeof resolveCategoryDisplayType>;
   prioritizeImages?: boolean;
   getQuantity: (food: Food) => number;
   onAddToOrder: (food: Food) => void;
@@ -33,6 +41,7 @@ interface FoodGridProps {
 
 const FoodGrid = ({
   foods,
+  displayType,
   prioritizeImages = false,
   getQuantity,
   onAddToOrder,
@@ -47,7 +56,10 @@ const FoodGrid = ({
     );
   }
 
-  const stackVertically = foods.some((food) => food.hideImage);
+  const stackVertically =
+    displayType === "NoImage" ||
+    displayType === "FirstItemImage" ||
+    displayType === "SmallImageLeft";
 
   return (
     <div
@@ -61,6 +73,10 @@ const FoodGrid = ({
           food={food}
           quantity={getQuantity(food)}
           imagePriority={prioritizeImages && foodIndex < 2}
+          imageLayout={resolveFoodImageLayout(
+            displayType,
+            foodIndex,
+          )}
           onAddToOrder={onAddToOrder}
           onRemoveFromOrder={onRemoveFromOrder}
           onOpen={onOpen}
@@ -77,6 +93,7 @@ export default function CategoryMenuSection({
   index,
   sectionRef,
   scrollMarginTop,
+  dietaryFilter,
   showAllSubcategories = false,
   activeSubId,
   onSubSelect,
@@ -91,14 +108,37 @@ export default function CategoryMenuSection({
   const activeSubcategory = subcategories.find(
     (sub) => sub.category.Id === activeSubId,
   );
-  const tabVisibleFoods = hasSubcategories
-    ? (activeSubcategory?.foods ?? subcategories[0]?.foods ?? [])
+  const scopeDisplayType = resolveCategoryDisplayType(
+    useSubcategoryTabs
+      ? (activeSubcategory ?? subcategories[0])?.category.DisplayType
+      : category.DisplayType,
+  );
+
+  const scopedFoods = useSubcategoryTabs
+    ? (activeSubcategory ?? subcategories[0])?.foods ?? []
     : foods;
+
   const childFoodCount = subcategories.reduce(
     (sum, item) => sum + item.foods.length,
     0,
   );
   const totalFoods = foods.length + childFoodCount;
+
+  const renderFilteredGrid = (
+    sourceFoods: Food[],
+    displayType: ReturnType<typeof resolveCategoryDisplayType>,
+    prioritizeImages: boolean,
+  ) => (
+    <FoodGrid
+      foods={filterFoodsByDietary(sourceFoods, dietaryFilter)}
+      displayType={displayType}
+      prioritizeImages={prioritizeImages}
+      getQuantity={getQuantity}
+      onAddToOrder={onAddToOrder}
+      onRemoveFromOrder={onRemoveFromOrder}
+      onOpen={onOpen}
+    />
+  );
 
   return (
     <div
@@ -142,44 +182,48 @@ export default function CategoryMenuSection({
       ) : null}
 
       {useSubcategoryTabs || !hasSubcategories ? (
-        <FoodGrid
-          foods={useSubcategoryTabs ? tabVisibleFoods : foods}
-          prioritizeImages={index === 0}
-          getQuantity={getQuantity}
-          onAddToOrder={onAddToOrder}
-          onRemoveFromOrder={onRemoveFromOrder}
-          onOpen={onOpen}
-        />
+        renderFilteredGrid(
+          useSubcategoryTabs ? scopedFoods : foods,
+          scopeDisplayType,
+          index === 0,
+        )
       ) : (
         <div className="flex flex-col gap-6">
-          {foods.length > 0 ? (
-            <FoodGrid
-              foods={foods}
-              prioritizeImages={index === 0}
-              getQuantity={getQuantity}
-              onAddToOrder={onAddToOrder}
-              onRemoveFromOrder={onRemoveFromOrder}
-              onOpen={onOpen}
-            />
-          ) : null}
+          {foods.length > 0
+            ? renderFilteredGrid(
+                foods,
+                resolveCategoryDisplayType(category.DisplayType),
+                index === 0,
+              )
+            : null}
 
-          {subcategories.map((sub, subcategoryIndex) => (
-            <div key={sub.category.Id} className="flex flex-col gap-3">
-              <h3 className="text-sm font-semibold text-zinc-700">
-                {sub.category.Title}
-              </h3>
-              <FoodGrid
-                foods={sub.foods}
-                prioritizeImages={
-                  index === 0 && foods.length === 0 && subcategoryIndex === 0
-                }
-                getQuantity={getQuantity}
-                onAddToOrder={onAddToOrder}
-                onRemoveFromOrder={onRemoveFromOrder}
-                onOpen={onOpen}
-              />
-            </div>
-          ))}
+          {subcategories.map((sub, subcategoryIndex) => {
+            const filtered = filterFoodsByDietary(sub.foods, dietaryFilter);
+            if (filtered.length === 0) return null;
+
+            return (
+              <div key={sub.category.Id} className="flex flex-col gap-3">
+                <h3 className="text-sm font-semibold text-zinc-700">
+                  {sub.category.Title}
+                </h3>
+                <FoodGrid
+                  foods={filtered}
+                  displayType={resolveCategoryDisplayType(
+                    sub.category.DisplayType,
+                  )}
+                  prioritizeImages={
+                    index === 0 &&
+                    foods.length === 0 &&
+                    subcategoryIndex === 0
+                  }
+                  getQuantity={getQuantity}
+                  onAddToOrder={onAddToOrder}
+                  onRemoveFromOrder={onRemoveFromOrder}
+                  onOpen={onOpen}
+                />
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

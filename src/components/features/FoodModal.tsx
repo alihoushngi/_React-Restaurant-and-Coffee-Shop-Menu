@@ -11,6 +11,9 @@ import { useModalBehavior } from "../../hooks/useModalBehavior";
 interface FoodModalProps {
   food: Food | null;
   quantity: number;
+  recommendedDrinks: Food[];
+  suggestDrink: boolean;
+  onAddRecommendedDrink: (drink: Food) => void;
   onClose: () => void;
   onAddToOrder: () => void;
   onRemoveFromOrder: () => void;
@@ -19,6 +22,9 @@ interface FoodModalProps {
 const FoodModal: FC<FoodModalProps> = ({
   food,
   quantity,
+  recommendedDrinks,
+  suggestDrink,
+  onAddRecommendedDrink,
   onClose,
   onAddToOrder,
   onRemoveFromOrder,
@@ -36,6 +42,11 @@ const FoodModal: FC<FoodModalProps> = ({
     food.enabled &&
     isAvailabilityActive(food.availability ?? { type: "always" });
   const hasVariants = Boolean(food.variants?.length);
+  const drinks = suggestDrink ? recommendedDrinks.filter((drink) =>
+    drink.isRecommendedDrink === true &&
+    drink.menuMode === food.menuMode &&
+    drink.orderKey !== food.orderKey,
+  ) : [];
   return (
     <AnimatePresence>
       <motion.div
@@ -126,6 +137,51 @@ const FoodModal: FC<FoodModalProps> = ({
                 {food.summary || "توضیحات این آیتم در حال حاضر موجود نیست."}
               </p>
             </div>
+
+            {drinks.length > 0 ? (
+              <section
+                aria-label="نوشیدنی‌های پیشنهادی کنار غذا"
+                className="rounded-2xl border border-[#e9e1e5] bg-[#f9f5f7] p-3"
+              >
+                <h3 className="mb-3 text-sm font-bold text-[#6d1e39]">
+                  کنار غذات چی مینوشی؟
+                </h3>
+                <ul className="flex flex-col gap-2">
+                  {drinks.map((drink) => {
+                    const canAdd = drink.enabled &&
+                      drink.sourceItemId !== undefined &&
+                      isAvailabilityActive(drink.availability ?? { type: "always" });
+                    return (
+                      <li key={drink.orderKey} className="flex items-center gap-3 rounded-2xl border border-[#eee8eb] bg-white p-2">
+                        <ProductImage
+                          src={drink.image}
+                          hasRealImage={drink.hasRealImage}
+                          alt=""
+                          className="h-16 w-14 shrink-0 rounded-lg"
+                          style={{ objectFit: "contain" }}
+                          logoClassName="p-2"
+                          width={56}
+                          height={64}
+                          loading="lazy"
+                        />
+                        <p className="min-w-0 flex-1 text-xs leading-6 font-semibold text-zinc-800">
+                          {drink.name}{drink.shortDescription ? ` – ${drink.shortDescription}` : ""}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => onAddRecommendedDrink(drink)}
+                          disabled={!canAdd}
+                          aria-label={`افزودن ${drink.name}`}
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#d4dcd5] bg-[#f5faf6] text-xl text-[#7c9083] transition hover:bg-[#e8f1eb] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7a394a] disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          +
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            ) : null}
           </div>
         </motion.div>
       </motion.div>

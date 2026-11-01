@@ -1,7 +1,6 @@
 import {
   getCategoryVariantConfig,
   type CategoryVariantDefinition,
-  type CollectionCategoryVariantConfig,
   type PairedCategoryVariantConfig,
 } from "../../constants/categoryVariants";
 import RayoLogo from "../../assets/logo/LogoNew.svg";
@@ -16,6 +15,18 @@ import type {
   MenuTreeNode,
   OrderSelection,
 } from "../../types/menu";
+import { readItemFeatureFlags } from "./itemFlags";
+
+export {
+  collectUniqueFlaggedFoods,
+  filterFoodsByDietary,
+  filterFoodsForSearchSheet,
+  isMeaningfulSearchQuery,
+  isTruthyApiFlag,
+  matchesDietaryFilter,
+  resolveCategoryDisplayType,
+  resolveFoodImageLayout,
+} from "./itemFlags";
 
 const ORDER_STORAGE_KEY = "Rayo-order-items";
 const LEGACY_ORDER_STORAGE_KEY = "Rayo-favorites";
@@ -65,7 +76,7 @@ const cleanDisplayText = (value: unknown, fallback: string) => {
 };
 
 export const isSearchQueryActive = (query: string) =>
-  Array.from(normalizePersianText(query)).length >= 3;
+  Array.from(normalizePersianText(query)).length >= 1;
 
 export const RAYO_LOGO_IMAGE = RayoLogo;
 
@@ -108,6 +119,8 @@ export const mapMenuItemToFood = (
   const enabled = item?.Enable === true;
   const imageUrl = cleanDisplayText(item?.ImageUrl, "");
   const hasRealImage = item?.HasPic === true && Boolean(imageUrl);
+  const shortDescription = cleanDisplayText(item.Summary, "");
+  const flags = readItemFeatureFlags(item);
 
   return {
     id: item.Id,
@@ -119,17 +132,20 @@ export const mapMenuItemToFood = (
     name,
     image: hasRealImage ? imageUrl : RAYO_LOGO_IMAGE,
     hasRealImage,
-    shortDescription: cleanDisplayText(item.Summary, ""),
+    shortDescription,
     price:
       typeof item.Price === "number" && Number.isFinite(item.Price)
         ? item.Price
         : null,
     enabled,
+    ...flags,
     favoriteEnabled: enabled,
     availability: { type: "always" },
     rank: typeof item.Rank === "number" ? item.Rank : undefined,
     summary: typeof item.Summary === "string" ? item.Summary : null,
-    searchText: normalizePersianText(name),
+    searchText: normalizePersianText(
+      [name, shortDescription].filter(Boolean).join(" "),
+    ),
   };
 };
 
@@ -195,6 +211,12 @@ const buildPairedVariantFoods = (
         summary: mapped.summary,
         rank: mapped.rank,
         searchText: mapped.searchText,
+        isForTwo: mapped.isForTwo,
+        isDietary: mapped.isDietary,
+        isVegetarian: mapped.isVegetarian,
+        isPopular: mapped.isPopular,
+        isRecommendedDrink: mapped.isRecommendedDrink,
+        showInSearch: mapped.showInSearch,
       });
     }
   }
@@ -208,6 +230,7 @@ const buildPairedVariantFoods = (
       variants.find((variant) => variant.hasRealImage) ?? variants[0];
     const enabled = variants.some((variant) => variant.enabled);
 
+    // A dietary badge describes the whole group only when every size has it.
     return {
       id: `variant:${parentCategory.Id}:${pairingKey}`,
       orderKey: `variant-group:${menuMode}:${parentCategory.Id}:${pairingKey}`,
@@ -222,6 +245,9 @@ const buildPairedVariantFoods = (
       price: representative?.price ?? null,
       enabled,
       favoriteEnabled: enabled,
+      isForTwo: variants.every((variant) => variant.isForTwo === true),
+      isDietary: variants.every((variant) => variant.isDietary === true),
+      isVegetarian: variants.every((variant) => variant.isVegetarian === true),
       availability: { type: "always" } as const,
       rank: Math.min(
         ...variants.map((variant) => variant.rank ?? Number.MAX_SAFE_INTEGER),
@@ -240,43 +266,6 @@ const buildPairedVariantFoods = (
       },
     } satisfies Food;
   });
-};
-
-const buildCollectionVariantFoods = (
-  parentCategory: MenuCategory,
-  items: MenuItem[],
-  menuMode: MenuMode,
-  config: CollectionCategoryVariantConfig,
-): Food[] => {
-  const standaloneTitles = new Set(
-    (config.standaloneItemTitles ?? []).map(normalizePersianText),
-  );
-  const collectionItems = items.filter(
-    (item) => !standaloneTitles.has(normalizePersianText(item.Title)),
-  );
-
-  if (collectionItems.length === 0) return [];
-
-  const foods = collectionItems.map((item) =>
-    mapMenuItemToFood(item, {
-      menuMode,
-      categoryTitle: parentCategory.Title,
-    }),
-  );
-  const heroFood = foods.find((food) => food.hasRealImage) ?? foods[0];
-
-  return foods.map((food, index) =>
-    index === 0
-      ? {
-          ...food,
-          image: heroFood.image,
-          hasRealImage: heroFood.hasRealImage,
-        }
-      : {
-          ...food,
-          hideImage: true,
-        },
-  );
 };
 
 export const buildMenuTree = (
@@ -307,49 +296,21 @@ export const buildMenuTree = (
     ancestorIds: ReadonlySet<number>,
   ): MenuTreeNode => {
     const config = getCategoryVariantConfig(category.Id);
-    const directItems = itemsByCategory.get(category.Id) ?? [];
-    const standaloneTitles = new Set(
-      config?.mode === "collection"
-        ? (config.standaloneItemTitles ?? []).map(normalizePersianText)
-        : [],
+    const directFoods = (itemsByCategory.get(category.Id) ?? []).map((item) =>
+      mapMenuItemToFood(item, {
+        menuMode,
+        categoryTitle: resolveCategoryTitle(categoriesById, item.CategoryId),
+      }),
     );
-    const directFoods = directItems
-      .filter(
-        (item) =>
-          config?.mode !== "collection" ||
-          standaloneTitles.has(normalizePersianText(item.Title)),
-      )
-      .map((item) =>
-        mapMenuItemToFood(item, {
-          menuMode,
-          categoryTitle: resolveCategoryTitle(categoriesById, item.CategoryId),
-        }),
-      );
 
-    if (config) {
-      const variantFoods =
-        config.mode === "collection"
-          ? buildCollectionVariantFoods(
-              category,
-              directItems,
-              menuMode,
-              config,
-            )
-          : buildPairedVariantFoods(
-              category,
-              itemsByCategory,
-              menuMode,
-              config,
-            );
-      const standaloneFoods =
-        config.mode === "collection" && variantFoods.length > 0
-          ? directFoods.map((food) => ({ ...food, hideImage: true }))
-          : directFoods;
-
+    if (config?.mode === "paired") {
       return {
         category,
         categorySearchText: normalizePersianText(category.Title),
-        foods: [...variantFoods, ...standaloneFoods],
+        foods: [
+          ...buildPairedVariantFoods(category, itemsByCategory, menuMode, config),
+          ...directFoods,
+        ],
         subcategories: [],
       };
     }
@@ -404,50 +365,46 @@ export const filterMenuTreeBySearch = (
   });
 };
 
-export const flattenOrderableFoods = (menuTree: MenuTreeNode[]) => {
-  const foods: Food[] = [];
-
-  const visitNode = (node: MenuTreeNode) => {
-    for (const food of node.foods) {
-      if (!food.variants) {
-        foods.push(food);
-        continue;
-      }
-
-      for (const variant of food.variants) {
-        foods.push({
-          ...food,
-          id: variant.itemId,
-          sourceItemId: variant.itemId,
-          orderKey: variant.orderKey,
-          name: food.name,
-          image: variant.image,
-          hasRealImage: variant.hasRealImage,
-          shortDescription: variant.shortDescription,
-          price: variant.price,
-          enabled: variant.enabled,
-          favoriteEnabled: variant.enabled,
-          rank: variant.rank,
-          summary: variant.summary,
-          searchText: variant.searchText,
-          variants: undefined,
-          variantPresentation: undefined,
-          variant: {
-            key: variant.key,
-            label: variant.label,
-            description: variant.description,
-            categoryId: variant.categoryId,
-          },
-        });
-      }
-    }
-
-    node.subcategories.forEach(visitNode);
-  };
-
-  menuTree.forEach(visitNode);
-  return foods;
+export const expandFoodVariants = (food: Food): Food[] => {
+  if (!food.variants) return [food];
+  return food.variants.map((variant) => ({
+    ...food,
+    id: variant.itemId,
+    sourceItemId: variant.itemId,
+    orderKey: variant.orderKey,
+    categoryId: variant.categoryId,
+    name: variant.title,
+    image: variant.image,
+    hasRealImage: variant.hasRealImage,
+    shortDescription: variant.shortDescription,
+    price: variant.price,
+    enabled: variant.enabled,
+    favoriteEnabled: variant.enabled,
+    rank: variant.rank,
+    summary: variant.summary,
+    searchText: variant.searchText,
+    isForTwo: variant.isForTwo,
+    isDietary: variant.isDietary,
+    isVegetarian: variant.isVegetarian,
+    isPopular: variant.isPopular,
+    isRecommendedDrink: variant.isRecommendedDrink,
+    showInSearch: variant.showInSearch,
+    variants: undefined,
+    variantPresentation: undefined,
+    variant: {
+      key: variant.key,
+      label: variant.label,
+      description: variant.description,
+      categoryId: variant.categoryId,
+    },
+  }));
 };
+
+export const flattenOrderableFoods = (menuTree: MenuTreeNode[]): Food[] =>
+  menuTree.flatMap((node) => [
+    ...node.foods.flatMap(expandFoodVariants),
+    ...flattenOrderableFoods(node.subcategories),
+  ]);
 
 export const extractArrayData = <T>(response: unknown): T[] => {
   if (Array.isArray(response)) return response as T[];

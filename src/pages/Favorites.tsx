@@ -12,6 +12,7 @@ import { useDineInCategory } from "../hooks/menu/useDineInCategory";
 import { useDeliveryCategory } from "../hooks/menu/useDeliveryCategory";
 import {
   buildMenuTree,
+  collectUniqueFlaggedFoods,
   createCategoryLookup,
   createOrderKey,
   extractArrayData,
@@ -228,6 +229,9 @@ export default function FavoritesPage() {
 
       <FoodModal
         food={selectedFood}
+        suggestDrink={categories.find((category) => category.Id === Number(selectedFood?.categoryId))?.SuggestDrink === true}
+        recommendedDrinks={collectUniqueFlaggedFoods(orderableFoods, "isRecommendedDrink")}
+        onAddRecommendedDrink={handleAddToOrder}
         quantity={
           selectedFood
             ? (favoriteFoods.find(

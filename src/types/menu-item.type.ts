@@ -14,4 +14,10 @@ export interface MenuItem {
   HideForMidweekBreakfast: boolean;
   ImageUrl: string;
   IsNew?: boolean;
+  IsForTwo?: boolean | null;
+  IsDietary?: boolean | null;
+  IsVegetarian?: boolean | null;
+  IsPopular?: boolean | null;
+  IsRecommendedDrink?: boolean | null;
+  ShowInSearch?: boolean | null;
 }

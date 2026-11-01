@@ -156,10 +156,11 @@ export function useModalBehavior({
 
       const first = focusableElements[0];
       const last = focusableElements[focusableElements.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
+      const activeIsControl = focusableElements.includes(document.activeElement as HTMLElement);
+      if (event.shiftKey && (document.activeElement === first || !activeIsControl)) {
         event.preventDefault();
         last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
+      } else if (!event.shiftKey && (document.activeElement === last || !activeIsControl)) {
         event.preventDefault();
         first.focus();
       }

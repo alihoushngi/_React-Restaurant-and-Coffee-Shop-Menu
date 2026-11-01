@@ -1,7 +1,6 @@
 import { AnimatePresence } from "framer-motion";
 import {
   useCallback,
-  useDeferredValue,
   useEffect,
   useMemo,
   useRef,
@@ -11,6 +10,7 @@ import { useLocation } from "react-router-dom";
 import { useFavorites } from "../../hooks/useFavorites";
 import type {
   Food,
+  DietaryFilter,
   FoodVariantQuantity,
   MenuCategory,
   MenuItem,
@@ -19,17 +19,21 @@ import type {
 } from "../../types/menu";
 import {
   buildMenuTree,
+  collectUniqueFlaggedFoods,
+  filterFoodsByDietary,
   createCategoryLookup,
-  filterMenuTreeBySearch,
+  mapMenuItemToFood,
+  resolveCategoryTitle,
   getOrderSelection,
-  isSearchQueryActive,
-  normalizePersianText,
   saveLastMenuMode,
 } from "../../lib/menu/utils";
 import PageShell from "../layout/PageShell";
 import MenuStickyHeader from "../ui/MenuStickyHeader";
 import CategoryMenuSection from "./CategoryMenuSection";
 import FoodModal from "./FoodModal";
+import DietaryFilterBar from "./DietaryFilterBar";
+import FeaturedFoodRail from "./FeaturedFoodRail";
+import SearchBottomSheet from "./SearchBottomSheet";
 import VariantSelectionSheet from "./VariantSelectionSheet";
 
 interface MenuPageProps {
@@ -52,43 +56,54 @@ const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
     Record<number, number>
   >({});
   const [activeCategoryId, setActiveCategoryId] = useState("");
+  const [dietaryFilter, setDietaryFilter] = useState<DietaryFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(
     () => new URLSearchParams(location.search).get("search") === "1",
   );
   const [stickyHeaderHeight, setStickyHeaderHeight] = useState(160);
   const stickyHeaderRef = useRef<HTMLDivElement | null>(null);
-  const sectionRefs = useRef(new Map<number, HTMLDivElement>());
+  const sectionRefs = useRef(new Map<number, HTMLElement>());
 
   const categoriesById = useMemo(
     () => createCategoryLookup(categories),
     [categories],
   );
-  const fullMenuTree = useMemo(
+  const menuTree = useMemo(
     () => buildMenuTree(categories, items, menuMode, categoriesById),
     [categories, categoriesById, items, menuMode],
   );
-  const deferredSearchQuery = useDeferredValue(searchQuery);
-  const filterSearchQuery = searchQuery === "" ? "" : deferredSearchQuery;
-  const normalizedQuery = useMemo(
-    () => normalizePersianText(filterSearchQuery),
-    [filterSearchQuery],
+  const searchableFoods = useMemo(
+    () => items.map((item) =>
+      mapMenuItemToFood(item, {
+        menuMode,
+        categoryTitle: resolveCategoryTitle(categoriesById, item.CategoryId),
+      }),
+    ),
+    [items, menuMode, categoriesById],
   );
-  const normalizedInputQuery = useMemo(
-    () => normalizePersianText(searchQuery),
-    [searchQuery],
+  const filteredFoods = useMemo(
+    () => filterFoodsByDietary(searchableFoods, dietaryFilter),
+    [searchableFoods, dietaryFilter],
   );
-  const searchActive = isSearchQueryActive(filterSearchQuery);
-  const menuTree = useMemo(
-    () =>
-      searchActive
-        ? filterMenuTreeBySearch(fullMenuTree, normalizedQuery)
-        : fullMenuTree,
-    [fullMenuTree, normalizedQuery, searchActive],
+  const popularFoods = useMemo(
+    () => collectUniqueFlaggedFoods(filteredFoods, "isPopular"),
+    [filteredFoods],
   );
+  const recommendedDrinks = useMemo(
+    () => collectUniqueFlaggedFoods(filteredFoods, "isRecommendedDrink"),
+    [filteredFoods],
+  );
+  const hasFeatured = popularFoods.length > 0 || recommendedDrinks.length > 0;
+  const featuredTitle = popularFoods.length > 0
+    ? "پرفروش‌های هفته"
+    : "کنار غذات چی مینوشی؟";
   const visibleCategories = useMemo(
-    () => menuTree.map((node) => node.category),
-    [menuTree],
+    () => [
+      ...(hasFeatured ? [{ Id: -1, Title: featuredTitle, ParentId: null }] : []),
+      ...menuTree.map((node) => node.category),
+    ],
+    [menuTree, hasFeatured, featuredTitle],
   );
   const visibleCategoryIds = useMemo(
     () => visibleCategories.map((category) => category.Id),
@@ -99,11 +114,6 @@ const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
   )
     ? activeCategoryId
     : String(visibleCategoryIds[0] ?? "");
-  const searchCharacterCount = Array.from(normalizedInputQuery).length;
-  const searchHint =
-    searchCharacterCount > 0 && searchCharacterCount < 3
-      ? "برای شروع جستجو حداقل ۳ کاراکتر وارد کنید."
-      : undefined;
 
   useEffect(() => {
     saveLastMenuMode(menuMode);
@@ -133,7 +143,7 @@ const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
         return;
       }
 
-      const anchor = stickyHeaderHeight + 12;
+      const anchor = stickyHeaderHeight + 5 + 12;
       let nextActiveId = visibleCategoryIds[0];
 
       for (const categoryId of visibleCategoryIds) {
@@ -176,7 +186,7 @@ const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
       setActiveCategoryId(id);
       const headerOffset =
         (stickyHeaderRef.current?.getBoundingClientRect().height ??
-          stickyHeaderHeight) + 12;
+          stickyHeaderHeight) + 5 + 12;
       const targetTop =
         window.scrollY + section.getBoundingClientRect().top - headerOffset;
 
@@ -225,11 +235,11 @@ const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
     (selections: FoodVariantQuantity[]) => {
       const orderSelections: OrderSelectionQuantity[] = selections.map(
         ({ variant, quantity }) => ({
-        foodId: String(variant.itemId),
-        orderKey: variant.orderKey,
-        menuMode,
-        quantity,
-      }),
+          foodId: String(variant.itemId),
+          orderKey: variant.orderKey,
+          menuMode,
+          quantity,
+        }),
       );
       addManyToFavorites(orderSelections);
       setVariantFood(null);
@@ -237,38 +247,35 @@ const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
     [addManyToFavorites, menuMode],
   );
 
-  const clearAndCloseSearch = useCallback(() => {
+  const closeSearch = useCallback(() => {
     setSearchQuery("");
-    setActiveCategoryId("");
     setIsSearchOpen(false);
   }, []);
 
   const handleSearchToggle = useCallback(() => {
     if (isSearchOpen) {
-      clearAndCloseSearch();
+      closeSearch();
       return;
     }
     setIsSearchOpen(true);
-  }, [clearAndCloseSearch, isSearchOpen]);
+  }, [closeSearch, isSearchOpen]);
+
+  const handleSearchSelect = useCallback((food: Food) => {
+    setIsSearchOpen(false);
+    setSearchQuery("");
+    setSelectedFood(food);
+  }, []);
 
   const searchControls = useMemo(
     () => ({
       isOpen: isSearchOpen,
-      isActive: searchActive,
+      isActive: false,
       value: searchQuery,
-      hint: searchHint,
       onChange: setSearchQuery,
-      onClear: clearAndCloseSearch,
+      onClear: closeSearch,
       onToggle: handleSearchToggle,
     }),
-    [
-      clearAndCloseSearch,
-      handleSearchToggle,
-      isSearchOpen,
-      searchActive,
-      searchHint,
-      searchQuery,
-    ],
+    [closeSearch, handleSearchToggle, isSearchOpen, searchQuery],
   );
 
   return (
@@ -280,53 +287,65 @@ const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
         stickyRef={stickyHeaderRef}
       />
 
-      {searchActive && menuTree.length === 0 ? (
-        <section className="rounded-[28px] bg-white px-4 py-14 text-center text-sm text-zinc-500 shadow-sm">
-          محصولی با این نام پیدا نشد.
+      <DietaryFilterBar value={dietaryFilter} onChange={setDietaryFilter} />
+      {hasFeatured ? (
+        <section
+          ref={(element) => {
+            if (element) sectionRefs.current.set(-1, element);
+            else sectionRefs.current.delete(-1);
+          }}
+          style={{ scrollMarginTop: stickyHeaderHeight + 5 + 12 }}
+          className="rounded-[24px] border border-[#e8dfe3] bg-[#fffbfc] p-3"
+          aria-label="پیشنهادهای منو"
+        >
+          <FeaturedFoodRail title="پرفروش‌های هفته" foods={popularFoods} onOpen={setSelectedFood} />
+          <FeaturedFoodRail title="کنار غذات چی مینوشی؟" foods={recommendedDrinks} onOpen={setSelectedFood} showTopDivider={popularFoods.length > 0} />
         </section>
-      ) : (
-        <section className="mt-0 flex flex-col gap-6">
-          {menuTree.map(({ category, foods, subcategories }, index) => {
-            const storedSubcategoryId = activeSubcategories[category.Id];
-            const activeSubId = subcategories.some(
-              (subcategory) =>
-                subcategory.category.Id === storedSubcategoryId,
-            )
-              ? storedSubcategoryId
-              : subcategories[0]?.category.Id;
+      ) : null}
 
-            return (
-              <CategoryMenuSection
-                key={category.Id}
-                category={category}
-                foods={foods}
-                subcategories={subcategories}
-                index={index}
-                sectionRef={(element) => {
-                  if (element) sectionRefs.current.set(category.Id, element);
-                  else sectionRefs.current.delete(category.Id);
-                }}
-                scrollMarginTop={stickyHeaderHeight + 12}
-                showAllSubcategories={searchActive}
-                activeSubId={activeSubId}
-                onSubSelect={(subcategoryId) =>
-                  setActiveSubcategories((current) => ({
-                    ...current,
-                    [category.Id]: subcategoryId,
-                  }))
-                }
-                getQuantity={getFoodQuantity}
-                onAddToOrder={handleAddToOrder}
-                onRemoveFromOrder={handleRemoveFromOrder}
-                onOpen={setSelectedFood}
-              />
-            );
-          })}
-        </section>
-      )}
+      <section className="mt-0 flex flex-col gap-6">
+        {menuTree.map(({ category, foods, subcategories }, index) => {
+          const storedSubcategoryId = activeSubcategories[category.Id];
+          const activeSubId = subcategories.some(
+            (subcategory) => subcategory.category.Id === storedSubcategoryId,
+          )
+            ? storedSubcategoryId
+            : subcategories[0]?.category.Id;
+
+          return (
+            <CategoryMenuSection
+              key={category.Id}
+              category={category}
+              foods={foods}
+              subcategories={subcategories}
+              index={index}
+              sectionRef={(element) => {
+                if (element) sectionRefs.current.set(category.Id, element);
+                else sectionRefs.current.delete(category.Id);
+              }}
+              dietaryFilter={dietaryFilter}
+              scrollMarginTop={stickyHeaderHeight + 5 + 12}
+              activeSubId={activeSubId}
+              onSubSelect={(subcategoryId) =>
+                setActiveSubcategories((current) => ({
+                  ...current,
+                  [category.Id]: subcategoryId,
+                }))
+              }
+              getQuantity={getFoodQuantity}
+              onAddToOrder={handleAddToOrder}
+              onRemoveFromOrder={handleRemoveFromOrder}
+              onOpen={setSelectedFood}
+            />
+          );
+        })}
+      </section>
 
       <FoodModal
         food={selectedFood}
+        suggestDrink={categoriesById.get(Number(selectedFood?.categoryId))?.SuggestDrink === true}
+        recommendedDrinks={collectUniqueFlaggedFoods(searchableFoods, "isRecommendedDrink")}
+        onAddRecommendedDrink={handleAddToOrder}
         quantity={selectedFood ? getFoodQuantity(selectedFood) : 0}
         onClose={() => setSelectedFood(null)}
         onAddToOrder={() => {
@@ -337,6 +356,15 @@ const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
         onRemoveFromOrder={() =>
           selectedFood && handleRemoveFromOrder(selectedFood)
         }
+      />
+
+      <SearchBottomSheet
+        isOpen={isSearchOpen}
+        foods={searchableFoods}
+        query={searchQuery}
+        onQueryChange={setSearchQuery}
+        onClose={closeSearch}
+        onSelect={handleSearchSelect}
       />
 
       <AnimatePresence>
