@@ -15,7 +15,7 @@ Development requests to `/api/data` are proxied to `https://rayocafe.ir` through
 
 ## Build and deployment
 
-Set the production API base before building, for example in a local `.env` file:
+Production defaults to `/api/data` on the frontend's origin. To use a different API host, set the base before building, for example in a local `.env` file:
 
 ```dotenv
 VITE_API_BASE=https://rayocafe.ir/api/data
