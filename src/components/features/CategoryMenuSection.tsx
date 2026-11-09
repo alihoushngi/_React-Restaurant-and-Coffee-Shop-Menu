@@ -4,6 +4,7 @@ import type {
   MenuCategory,
   MenuTreeNode,
 } from "../../types/menu";
+import { getContractedDisplayType } from "../../constants/categoryDisplayTypes";
 import { SHOW_SUBCATEGORY_TABS } from "../../constants/menu";
 import {
   filterFoodsByDietary,
@@ -71,7 +72,7 @@ const FoodGrid = ({
   return (
     <div className={`flex flex-col ${stackGapClass}`}>
       {sharedImage ? (
-        <div className="mb-1.5 aspect-square overflow-hidden rounded-[18px] bg-zinc-100">
+        <div className="mb-3.5 aspect-square overflow-hidden rounded-[18px] bg-zinc-100">
           <ProductImage
             src={sharedImage.image}
             hasRealImage={sharedImage.hasRealImage}
@@ -125,11 +126,22 @@ export default function CategoryMenuSection({
   const activeSubcategory = subcategories.find(
     (sub) => sub.category.Id === activeSubId,
   );
+  const contractedDisplayType = getContractedDisplayType(category.Id);
+  const parentDisplayType = resolveCategoryDisplayType(
+    category.DisplayType,
+    contractedDisplayType,
+  );
+  const activeTabCategory = (activeSubcategory ?? subcategories[0])?.category;
+  const tabContractedDisplayType = activeTabCategory
+    ? getContractedDisplayType(activeTabCategory.Id)
+    : undefined;
   const scopeDisplayType = resolveCategoryDisplayType(
     useSubcategoryTabs
-      ? (activeSubcategory ?? subcategories[0])?.category.DisplayType
+      ? activeTabCategory?.DisplayType
       : category.DisplayType,
-    useSubcategoryTabs ? category.DisplayType : undefined,
+    useSubcategoryTabs
+      ? (tabContractedDisplayType ?? parentDisplayType)
+      : contractedDisplayType,
   );
 
   const scopedFoods = useSubcategoryTabs
@@ -172,11 +184,13 @@ export default function CategoryMenuSection({
       style={{ scrollMarginTop }}
       className="category-surface rounded-[28px] border border-[#eadfe3] bg-[#fffbfc] p-3 shadow-[0_8px_24px_rgba(74,33,48,0.05)]"
     >
-      <div className="mb-3 flex items-center justify-between gap-3 text-sm text-zinc-500">
+      <div className="mb-3.5 flex items-start justify-between gap-2.5 px-0.5 text-sm text-zinc-500">
         <span className="text-lg font-bold text-[#3a222a]">
           {category.Title}
         </span>
-        <span>{toPersianDigits(totalFoods)} انتخاب</span>
+        <span className="whitespace-nowrap pt-1 text-[11px] text-[#888]">
+          {toPersianDigits(totalFoods)} آیتم
+        </span>
       </div>
 
       {useSubcategoryTabs ? (
@@ -214,11 +228,7 @@ export default function CategoryMenuSection({
       ) : (
         <div className="flex flex-col">
           {parentVisibleFoods.length > 0
-            ? renderFilteredGrid(
-                foods,
-                resolveCategoryDisplayType(category.DisplayType),
-                index === 0,
-              )
+            ? renderFilteredGrid(foods, parentDisplayType, index === 0)
             : null}
 
           {visibleSubcategories.map(
@@ -235,7 +245,8 @@ export default function CategoryMenuSection({
                   foods={filtered}
                   displayType={resolveCategoryDisplayType(
                     sub.category.DisplayType,
-                    category.DisplayType,
+                    getContractedDisplayType(sub.category.Id) ??
+                      parentDisplayType,
                   )}
                   prioritizeImages={
                     index === 0 &&

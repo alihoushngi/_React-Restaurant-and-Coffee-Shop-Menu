@@ -268,17 +268,21 @@ try {
   assert.ok(!filteredSubGone.includes("شیک‌ها"), "empty subcategory heading omitted");
   assert.ok(filteredSubGone.includes("اسموتی رژیمی"), "matching subcategory kept");
 
-  // Missing DisplayType on live API still defaults to large (no name hardcoding)
-  const liveDefault = renderShake({
+  // MENU-016: Id=26 contracts SmallImageLeft when API omits DisplayType (Id-based, not name)
+  const liveContract = renderShake({
     category: { Id: 26, Title: "شیک" },
   });
   assert.ok(
-    liveDefault.includes("rounded-[24px]"),
-    "absent DisplayType does not hardcode shake compact",
+    liveContract.includes("grid-cols-[minmax(0,1fr)_76px]"),
+    "Id=26 contract activates compact without API DisplayType",
+  );
+  assert.ok(
+    liveContract.includes("rounded-[18px]"),
+    "Id=26 contract uses compact-card radius",
   );
 
   console.log(
-    "MENU-013: shake compact-card via SmallImageLeft, parent DisplayType fallback for internal titles, dessert/breakfast/hookah preserved, missing/unavailable/filter/variants kept.",
+    "MENU-013: shake compact-card via SmallImageLeft + Id=26 contract, parent DisplayType fallback for internal titles, dessert/breakfast/hookah preserved, missing/unavailable/filter/variants kept.",
   );
 } finally {
   await server.close();

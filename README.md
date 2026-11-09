@@ -1,6 +1,6 @@
 # Rayo Cafe Menu
 
-Persian RTL cafe and restaurant menu built with React 19, TypeScript, Vite 8, and Tailwind CSS 4. Current version: **3.3.3**.
+Persian RTL cafe and restaurant menu built with React 19, TypeScript, Vite 8, and Tailwind CSS 4. Current version: **3.3.4**.
 
 ## Getting started
 

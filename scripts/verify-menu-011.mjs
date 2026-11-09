@@ -75,8 +75,32 @@ try {
   assert.ok(!large.includes("grid-cols-[minmax(0,1fr)_76px]"), "LargeImage is not compact grid");
   assert.ok(large.includes("gap-3"), "LargeImage stack gap unchanged");
 
-  const missing = renderSection(undefined);
-  assert.ok(missing.includes("rounded-[24px]"), "missing DisplayType defaults to LargeImage");
+  // Id=25 is contracted SmallImageLeft (MENU-016); unlisted Id still defaults LargeImage
+  const coffeeContract = renderSection(undefined);
+  assert.ok(
+    coffeeContract.includes("grid-cols-[minmax(0,1fr)_76px]"),
+    "Id=25 without API DisplayType uses compact contract",
+  );
+
+  const unlistedMissing = renderToStaticMarkup(
+    React.createElement(Section, {
+      category: { Id: 99, Title: "دسته آزمایشی" },
+      foods: [baseFood],
+      subcategories: [],
+      index: 0,
+      sectionRef() {},
+      scrollMarginTop: 0,
+      dietaryFilter: "all",
+      getQuantity: () => 0,
+      onAddToOrder() {},
+      onRemoveFromOrder() {},
+      onOpen() {},
+    }),
+  );
+  assert.ok(
+    unlistedMissing.includes("rounded-[24px]"),
+    "unlisted category missing DisplayType defaults to LargeImage",
+  );
 
   const dessert = renderToStaticMarkup(
     React.createElement(Section, {

@@ -4,6 +4,7 @@ import {
   resolveFoodImageLayout, matchesDietaryFilter, filterFoodsByDietary,
   filterFoodsForSearchSheet, collectUniqueFlaggedFoods, filterMenuTreeByDietary,
 } from "../src/lib/menu/itemFlags.ts";
+import { getContractedDisplayType } from "../src/constants/categoryDisplayTypes.ts";
 import {
   getCartItemLabels,
   resolveFavoriteEntryMenuMode,
@@ -70,6 +71,37 @@ assert(resolveFoodImageLayout("FirstItemImage", 0) === "large", "FirstItemImage 
 assert(resolveFoodImageLayout("FirstItemImage", 1) === "none", "FirstItemImage index 1 none");
 assert(resolveFoodImageLayout("SmallImageLeft", 0) === "small-left", "SmallImageLeft layout");
 assert(resolveFoodImageLayout("LargeImage", 0) === "large", "LargeImage always shows an image");
+assert(getContractedDisplayType(20) === "FirstItemImage", "hookah Id=20 contracts FirstItemImage");
+assert(getContractedDisplayType(25) === "SmallImageLeft", "coffee Id=25 contracts SmallImageLeft");
+assert(getContractedDisplayType(21) === "SmallImageLeft", "espresso-cold Id=21 contracts SmallImageLeft");
+assert(getContractedDisplayType(24) === "SmallImageLeft", "hot drinks Id=24 contracts SmallImageLeft");
+assert(getContractedDisplayType(26) === "SmallImageLeft", "shake Id=26 contracts SmallImageLeft");
+assert(getContractedDisplayType(11) === "SmallImageLeft", "mocktail/soda Id=11 contracts SmallImageLeft (EC-1=B)");
+assert(getContractedDisplayType(9) === undefined, "hot child Id=9 has no own contract (inherits parent)");
+assert(getContractedDisplayType(10) === undefined, "hot child Id=10 has no own contract (inherits parent)");
+assert(getContractedDisplayType(15) === undefined, "dessert Id=15 has no compact contract");
+assert(getContractedDisplayType(19) === undefined, "breakfast Id=19 has no compact contract");
+assert(getContractedDisplayType(1) === undefined, "unlisted category has no display contract");
+assert(
+  resolveCategoryDisplayType(undefined, getContractedDisplayType(20)) === "FirstItemImage",
+  "missing API DisplayType falls back to category contract",
+);
+assert(
+  resolveCategoryDisplayType("LargeImage", getContractedDisplayType(20)) === "LargeImage",
+  "explicit API DisplayType wins over category contract",
+);
+assert(
+  resolveCategoryDisplayType(undefined, getContractedDisplayType(25)) === "SmallImageLeft",
+  "missing API DisplayType falls back to coffee contract",
+);
+assert(
+  resolveCategoryDisplayType("LargeImage", getContractedDisplayType(26)) === "LargeImage",
+  "explicit API DisplayType wins over shake contract",
+);
+assert(
+  resolveCategoryDisplayType(undefined, getContractedDisplayType(24)) === "SmallImageLeft",
+  "hot parent contract available for child inheritance",
+);
 
 const both = { isVegetarian: true, isDietary: true, orderKey: "a", sourceItemId: 1 };
 const vegOnly = { isVegetarian: true, orderKey: "b", sourceItemId: 2 };
