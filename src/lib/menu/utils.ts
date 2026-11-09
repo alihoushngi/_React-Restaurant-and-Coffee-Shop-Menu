@@ -406,6 +406,14 @@ export const flattenOrderableFoods = (menuTree: MenuTreeNode[]): Food[] =>
     ...flattenOrderableFoods(node.subcategories),
   ]);
 
+export {
+  MAX_ORDER_SELECTION_QUANTITY,
+  getCartItemLabels,
+  resolveFavoriteEntryMenuMode,
+  resolveOrderSelections,
+  type ResolvedOrderSelection,
+} from "./orderSelections";
+
 export const extractArrayData = <T>(response: unknown): T[] => {
   if (Array.isArray(response)) return response as T[];
   if (!response || typeof response !== "object") return [];
@@ -537,3 +545,8 @@ export const isAvailabilityActive = (availability: MenuAvailability) => {
     availability.availableTo,
   );
 };
+
+export const isFoodAvailable = (
+  enabled: boolean,
+  availability: MenuAvailability = { type: "always" },
+) => enabled && isAvailabilityActive(availability);

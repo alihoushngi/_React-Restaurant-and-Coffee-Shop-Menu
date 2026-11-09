@@ -9,8 +9,10 @@ import {
 } from "react-icons/hi2";
 import clsx from "clsx";
 import type { MenuMode } from "../../types/menu";
-import { getMenuPath, resolveMenuMode } from "../../lib/menu/utils";
+import { getMenuPath, resolveMenuMode, toPersianDigits } from "../../lib/menu/utils";
 import InformationSheet from "../features/InformationSheet";
+import OrderSelectionSheet from "../features/OrderSelectionSheet";
+import SurveyBottomSheet from "../features/SurveyBottomSheet";
 import {
   getFavoriteEntryMenuMode,
   useFavorites,
@@ -43,13 +45,16 @@ const BottomNavigation = ({
 }: BottomNavigationProps) => {
   const location = useLocation();
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const [isOrderOpen, setIsOrderOpen] = useState(false);
+  const [isSurveyOpen, setIsSurveyOpen] = useState(false);
+  const [surveySessionKey, setSurveySessionKey] = useState(0);
   const { favorites } = useFavorites();
   const queryMenuMode = new URLSearchParams(location.search).get("menu");
   const resolvedMenuMode = menuMode ?? resolveMenuMode(queryMenuMode);
-  const orderHref = `/favorites?menu=${resolvedMenuMode}`;
   const searchHref = `${getMenuPath(resolvedMenuMode)}?search=1`;
   const isSearchOpen = searchControls?.isOpen === true;
-  const isOrderActive = location.pathname === "/favorites";
+  const isFavoritesRoute = location.pathname === "/favorites";
+  const isOrderActive = isOrderOpen || isFavoritesRoute;
   const orderCount = useMemo(
     () =>
       favorites.reduce(
@@ -64,23 +69,39 @@ const BottomNavigation = ({
 
   return (
     <>
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-zinc-200 bg-white px-1 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-        <div className="mx-auto flex min-h-14 max-w-5xl items-stretch justify-between gap-0.5">
+      <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-[540px] -translate-x-1/2 border-t border-[#eadfe3] bg-white/95 px-1 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_28px_rgba(74,33,48,0.08)] backdrop-blur-xl">
+        <div className="flex min-h-14 items-stretch justify-between gap-0.5">
           <div className="min-w-0 flex-1">
-            <Link
-              to={orderHref}
+            <button
+              type="button"
+              onClick={() => {
+                setIsInfoOpen(false);
+                setIsSurveyOpen(false);
+                setIsOrderOpen(true);
+              }}
+              aria-expanded={isOrderOpen}
               aria-label={
                 orderCount > 0
                   ? `لیست انتخاب‌ها، ${orderCount} آیتم`
                   : "لیست انتخاب‌ها"
               }
-              className={navItemClass(isOrderActive || (!isSearchOpen && !isInfoOpen))}
+              className={navItemClass(
+                isOrderActive ||
+                  (!isSearchOpen && !isInfoOpen && !isSurveyOpen),
+              )}
             >
-              <HiClipboardDocumentList
-                className={clsx("h-6 w-6", isOrderActive && "stroke-[1.5]")}
-              />
+              <span className="relative">
+                <HiClipboardDocumentList
+                  className={clsx("h-6 w-6", isOrderActive && "stroke-[1.5]")}
+                />
+                {orderCount > 0 ? (
+                  <b className="absolute -top-1 -left-3 min-w-[18px] rounded-full bg-[#6d1e39] px-1.5 py-px text-center text-[10px] font-bold text-white">
+                    {toPersianDigits(orderCount)}
+                  </b>
+                ) : null}
+              </span>
               <span className="whitespace-nowrap">لیست انتخاب‌ها</span>
-            </Link>
+            </button>
           </div>
 
           <div className="min-w-0 flex-1">
@@ -106,11 +127,15 @@ const BottomNavigation = ({
           <div className="min-w-0 flex-1">
             <button
               type="button"
-              disabled
-              aria-disabled="true"
-              title="نظرسنجی فعلاً در دسترس نیست"
-              aria-label="نظرسنجی، فعلاً در دسترس نیست"
-              className={clsx(navItemClass(false), "cursor-not-allowed")}
+              onClick={() => {
+                setIsOrderOpen(false);
+                setIsInfoOpen(false);
+                setSurveySessionKey((key) => key + 1);
+                setIsSurveyOpen(true);
+              }}
+              aria-expanded={isSurveyOpen}
+              aria-label="نظرسنجی"
+              className={navItemClass(isSurveyOpen)}
             >
               <HiChatBubbleBottomCenterText className="h-6 w-6" />
               <span>نظرسنجی</span>
@@ -120,7 +145,11 @@ const BottomNavigation = ({
           <div className="min-w-0 flex-1">
             <button
               type="button"
-              onClick={() => setIsInfoOpen(true)}
+              onClick={() => {
+                setIsOrderOpen(false);
+                setIsSurveyOpen(false);
+                setIsInfoOpen(true);
+              }}
               className={navItemClass(isInfoOpen)}
               aria-label="اطلاعات"
             >
@@ -130,6 +159,18 @@ const BottomNavigation = ({
           </div>
         </div>
       </nav>
+
+      <OrderSelectionSheet
+        isOpen={isOrderOpen}
+        menuMode={resolvedMenuMode}
+        onClose={() => setIsOrderOpen(false)}
+      />
+
+      <SurveyBottomSheet
+        isOpen={isSurveyOpen}
+        sessionKey={surveySessionKey}
+        onClose={() => setIsSurveyOpen(false)}
+      />
 
       <AnimatePresence>
         {isInfoOpen ? (

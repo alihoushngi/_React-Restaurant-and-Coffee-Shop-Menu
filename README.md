@@ -1,6 +1,6 @@
 # Rayo Cafe Menu
 
-Persian RTL cafe and restaurant menu built with React 19, TypeScript, Vite 8, and Tailwind CSS 4. Current version: **3.3.1**.
+Persian RTL cafe and restaurant menu built with React 19, TypeScript, Vite 8, and Tailwind CSS 4. Current version: **3.3.3**.
 
 ## Getting started
 
@@ -87,7 +87,7 @@ scripts/
   verify-menu-logic.mjs  Runnable menu logic assertions
 ```
 
-Local customer briefs, screenshots, and browser QA evidence live in `task/`, which is excluded from Git.
+Local agent rules and BMAD specs live in `agent.md`, `.ai/`, and `docs/` (gitignored). Agents implement only after `approval: approved` on a spec’s `plan.md`.
 
 ## Validation
 

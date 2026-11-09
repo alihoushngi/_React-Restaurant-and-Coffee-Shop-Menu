@@ -1,5 +1,5 @@
 import type { Food } from "../../types/menu";
-import { formatMenuPrice } from "../../lib/menu/utils";
+import { formatPrice } from "../../lib/menu/utils";
 
 interface ProductPriceProps {
   food: Food;
@@ -7,42 +7,36 @@ interface ProductPriceProps {
 }
 
 const ProductPrice = ({ food, appearance }: ProductPriceProps) => {
-  const priceClasses =
-    appearance === "details" ? "text-lg leading-7" : "text-base leading-6";
+  const hasVariants = Boolean(food.variants?.length);
+  const price =
+    typeof food.price === "number" && Number.isFinite(food.price)
+      ? food.price
+      : null;
+  const sizeClass =
+    appearance === "details" ? "text-base leading-6" : "text-base leading-6";
 
-  if (!food.variants?.length) {
+  if (price === null) {
     return (
       <span
-        className={`whitespace-nowrap font-bold text-black ${priceClasses}`}
+        className={`whitespace-nowrap font-bold text-[#151515] ${sizeClass}`}
         data-product-price
       >
-        {formatMenuPrice(food.price)}
+        قیمت نامشخص
       </span>
     );
   }
 
   return (
-    <div className="flex shrink-0 flex-col items-end gap-1 text-right">
-      {food.variants.map((variant) => (
-        <div
-          key={variant.key}
-          className={`flex items-baseline justify-end gap-x-1.5 whitespace-nowrap ${
-            variant.enabled ? "" : "opacity-50 line-through"
-          }`}
-          aria-disabled={!variant.enabled}
-        >
-          <span className="text-xs font-semibold text-zinc-600">
-            {variant.label} ({variant.description})
-          </span>
-          <span
-            className={`font-bold text-black ${priceClasses}`}
-            data-product-price
-          >
-            {formatMenuPrice(variant.price)}
-          </span>
-        </div>
-      ))}
-    </div>
+    <span
+      className={`inline-flex items-baseline whitespace-nowrap font-bold text-[#151515] ${sizeClass}`}
+      data-product-price
+    >
+      {hasVariants ? (
+        <span className="ml-1 text-[10px] font-normal text-[#71717a]">از</span>
+      ) : null}
+      {formatPrice(price)}
+      <small className="mr-1 text-xs font-normal">تومان</small>
+    </span>
   );
 };
 

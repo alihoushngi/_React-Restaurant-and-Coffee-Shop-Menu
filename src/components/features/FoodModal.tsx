@@ -1,11 +1,20 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useRef, type FC } from "react";
-import { HiXMark } from "react-icons/hi2";
+import clsx from "clsx";
 import type { Food } from "../../types/menu";
-import { isAvailabilityActive } from "../../lib/menu/utils";
+import { formatPrice, isFoodAvailable } from "../../lib/menu/utils";
+import {
+  SHEET_BODY_WITH_FOOTER_CLASS,
+  SHEET_FOOTER_CLASS,
+  SHEET_OVERLAY_CLASS,
+  SHEET_PANEL_CLASS,
+  sheetOverlayMotion,
+  sheetPanelMotion,
+} from "../../lib/ui/sheetMotion";
 import ProductImage from "../ui/ProductImage";
 import ProductOrderRow from "../ui/ProductOrderRow";
 import ProductPrice from "../ui/ProductPrice";
+import SheetHeader from "../ui/SheetHeader";
 import { useModalBehavior } from "../../hooks/useModalBehavior";
 
 interface FoodModalProps {
@@ -29,95 +38,238 @@ const FoodModal: FC<FoodModalProps> = ({
   onAddToOrder,
   onRemoveFromOrder,
 }) => {
+  const reduceMotion = useReducedMotion() === true;
   const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const overlayMotion = sheetOverlayMotion(reduceMotion);
+  const panelMotion = sheetPanelMotion(reduceMotion);
   useModalBehavior({
     isOpen: Boolean(food),
     onClose,
     dialogRef,
+    initialFocusRef: closeButtonRef,
   });
 
   if (!food) return null;
 
-  const isAvailable =
-    food.enabled &&
-    isAvailabilityActive(food.availability ?? { type: "always" });
+  const isAvailable = isFoodAvailable(
+    food.enabled,
+    food.availability ?? { type: "always" },
+  );
   const hasVariants = Boolean(food.variants?.length);
-  const drinks = suggestDrink ? recommendedDrinks.filter((drink) =>
-    drink.isRecommendedDrink === true &&
-    drink.menuMode === food.menuMode &&
-    drink.orderKey !== food.orderKey,
-  ) : [];
+  const drinks = suggestDrink
+    ? recommendedDrinks.filter(
+        (drink) =>
+          drink.isRecommendedDrink === true &&
+          drink.menuMode === food.menuMode &&
+          drink.orderKey !== food.orderKey,
+      )
+    : [];
+  const description =
+    food.summary ||
+    food.shortDescription ||
+    "توضیحات این آیتم در حال حاضر موجود نیست.";
+
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-60 bg-zinc-950/55"
+        {...overlayMotion}
+        className={SHEET_OVERLAY_CLASS}
         onClick={onClose}
         role="presentation"
       >
         <motion.div
           ref={dialogRef}
           tabIndex={-1}
-          initial={{ y: "100%" }}
-          animate={{ y: 0 }}
-          exit={{ y: "100%" }}
-          transition={{ type: "spring", stiffness: 220, damping: 24 }}
-          className="absolute inset-x-0 bottom-0 mx-auto max-h-[92dvh] w-full max-w-xl overflow-y-auto overscroll-contain rounded-t-[28px] bg-white shadow-2xl outline-none"
+          {...panelMotion}
+          className={SHEET_PANEL_CLASS}
           onClick={(event) => event.stopPropagation()}
           role="dialog"
           aria-modal="true"
-          aria-label={food.name}
+          aria-labelledby="food-detail-sheet-title"
         >
-          {food.hideImage ? (
-            <div className="flex items-center justify-end p-4 pb-0">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 shadow-sm"
-                aria-label="بستن جزئیات محصول"
-              >
-                <HiXMark className="h-5 w-5 text-zinc-700" />
-              </button>
-            </div>
-          ) : (
-            <div className="relative h-64 w-full overflow-hidden rounded-t-[28px] bg-zinc-100 sm:h-80">
-              <ProductImage
-                src={food.image}
-                hasRealImage={food.hasRealImage}
-                alt={food.name}
-                className="h-full w-full"
-                logoClassName="p-10 sm:p-16"
-                width={640}
-                height={480}
-              />
-              <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-sm"
-                  aria-label="بستن جزئیات محصول"
-                >
-                  <HiXMark className="h-5 w-5 text-zinc-700" />
-                </button>
+          <SheetHeader
+            titleId="food-detail-sheet-title"
+            title="جزئیات انتخاب"
+            onClose={onClose}
+            closeLabel="بستن جزئیات محصول"
+            closeRef={closeButtonRef}
+          />
+
+          <div className={SHEET_BODY_WITH_FOOTER_CLASS}>
+            {!food.hideImage ? (
+              <div className="relative aspect-square w-full overflow-hidden rounded-[18px] bg-[#f4f4f5]">
+                <ProductImage
+                  src={food.image}
+                  hasRealImage={food.hasRealImage}
+                  alt={food.name}
+                  className={clsx(
+                    "absolute inset-0 h-full w-full",
+                    !isAvailable && "opacity-50 grayscale",
+                  )}
+                  logoClassName="p-10 sm:p-16"
+                  width={640}
+                  height={640}
+                />
+                {!isAvailable ? (
+                  <span className="pointer-events-none absolute bottom-3 left-3 z-10 rounded-[10px] border border-[#e5ded1] bg-[#fffef5ed] px-3 py-1.5 text-xs text-[#6a6256]">
+                    فعلاً موجود نیست
+                  </span>
+                ) : null}
               </div>
-            </div>
-          )}
+            ) : null}
 
-          <div className="space-y-3 p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:space-y-4 sm:p-5">
-            <div className="min-w-0">
-              <p className="text-xs text-zinc-500">{food.categoryTitle}</p>
-              <h2 className="mt-1 text-xl font-bold text-zinc-900">
-                {food.name}
-              </h2>
-              {food.variant ? (
-                <p className="mt-1 font-semibold text-[#7a394a]">
-                  {food.variant.label} - {food.variant.description}
+            <h3 className="mt-[15px] text-[21px] font-bold text-[#242424]">
+              {food.name}
+            </h3>
+
+            {food.isForTwo === true ||
+            food.isVegetarian === true ||
+            food.isDietary === true ? (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {food.isForTwo === true ? (
+                  <span className="inline-flex rounded-[7px] bg-[#f4edef] px-2 py-0.5 text-[11px] text-[#6d1e39]">
+                    دونفره
+                  </span>
+                ) : null}
+                {food.isVegetarian === true ? (
+                  <span className="inline-flex rounded-[7px] bg-[#edf5e9] px-2 py-0.5 text-[11px] text-[#49643a]">
+                    گیاهی
+                  </span>
+                ) : null}
+                {food.isDietary === true ? (
+                  <span className="inline-flex rounded-[7px] bg-[#eaf3f9] px-2 py-0.5 text-[11px] text-[#37657e]">
+                    رژیمی
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+
+            {food.variant ? (
+              <p className="mt-1 font-semibold text-[#7a394a]">
+                {food.variant.label} - {food.variant.description}
+              </p>
+            ) : null}
+
+            <p className="mt-2 text-[15px] leading-[2] text-[#666]">
+              {description}
+            </p>
+
+            {!isAvailable ? (
+              <p className="mt-3 rounded-[10px] bg-[#f4f1ec] px-3 py-2.5 text-xs leading-6 text-[#766a56]">
+                این آیتم فعلاً موجود نیست. می‌توانید سایر گزینه‌های منو را انتخاب
+                کنید.
+              </p>
+            ) : null}
+
+            {hasVariants && food.variants ? (
+              <fieldset className="mt-5 border-0 p-0">
+                <legend className="mb-2.5 text-sm font-bold text-[#242424]">
+                  {food.variantPresentation?.sheetSubtitle ?? "انتخاب گزینه"}
+                </legend>
+                <ul className="grid gap-2">
+                  {food.variants.map((variant) => (
+                    <li
+                      key={variant.key}
+                      className={clsx(
+                        "flex min-h-[46px] items-center gap-2 rounded-xl border px-3 py-2.5 text-[13px]",
+                        variant.enabled
+                          ? "border-[#e6e1e2] bg-white"
+                          : "border-zinc-100 bg-zinc-50 opacity-60",
+                      )}
+                    >
+                      <span className="min-w-0 flex-1 font-medium text-[#242424]">
+                        {variant.label}
+                        {variant.description ? ` · ${variant.description}` : ""}
+                      </span>
+                      <span className="shrink-0 text-[11px] text-[#777]">
+                        {typeof variant.price === "number"
+                          ? `${formatPrice(variant.price)} تومان`
+                          : "قیمت نامشخص"}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-xs leading-6 text-[#637d6c]">
+                  برای ثبت تعداد هر گزینه، افزودن را بزنید.
                 </p>
-              ) : null}
-            </div>
+              </fieldset>
+            ) : null}
 
+            {drinks.length > 0 ? (
+              <section
+                aria-label="نوشیدنی‌های پیشنهادی کنار غذا"
+                className="mt-6 rounded-[18px] border border-[#efdee3] bg-[#f9f4f5] px-3 py-4"
+              >
+                <h3 className="text-base font-bold text-[#6d1e39]">
+                  کنار غذات چی مینوشی؟
+                </h3>
+                <ul className="mt-3 grid gap-2.5">
+                  {drinks.map((drink) => {
+                    const canAdd =
+                      drink.sourceItemId !== undefined &&
+                      isFoodAvailable(
+                        drink.enabled,
+                        drink.availability ?? { type: "always" },
+                      );
+                    return (
+                      <li
+                        key={drink.orderKey}
+                        className="flex min-w-0 items-center gap-2.5 rounded-[13px] border border-[#efeaeb] bg-white p-2"
+                      >
+                        <ProductImage
+                          src={drink.image}
+                          hasRealImage={drink.hasRealImage}
+                          alt=""
+                          className={clsx(
+                            "h-[68px] w-[68px] shrink-0 rounded-[10px]",
+                            !canAdd && "opacity-50 grayscale",
+                          )}
+                          logoClassName="p-2"
+                          width={68}
+                          height={68}
+                          loading="lazy"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[13px] font-semibold text-zinc-800">
+                            {drink.name}
+                          </p>
+                          {drink.shortDescription ? (
+                            <p className="mt-0.5 text-[10px] leading-[1.8] text-[#888]">
+                              {drink.shortDescription}
+                            </p>
+                          ) : null}
+                          {!canAdd ? (
+                            <span className="mt-1 block text-[10px] font-medium text-[#837660]">
+                              فعلاً ناموجود
+                            </span>
+                          ) : null}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!canAdd) return;
+                            onAddRecommendedDrink(drink);
+                          }}
+                          disabled={!canAdd}
+                          aria-label={
+                            canAdd
+                              ? `افزودن ${drink.name}`
+                              : `ناموجود ${drink.name}`
+                          }
+                          className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full border border-[#c6d4cb] bg-[#f6faf7] text-xl text-[#637d6c] transition hover:bg-[#e8f1eb] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7a394a] disabled:cursor-not-allowed disabled:border-[#ddd] disabled:bg-[#e5e5e5] disabled:text-[#7b7b7b]"
+                        >
+                          +
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            ) : null}
+          </div>
+
+          <footer className={SHEET_FOOTER_CLASS}>
             <ProductOrderRow
               productName={food.name}
               enabled={food.enabled}
@@ -130,59 +282,7 @@ const FoodModal: FC<FoodModalProps> = ({
               onAddToOrder={onAddToOrder}
               onRemoveFromOrder={onRemoveFromOrder}
             />
-
-            <div className="rounded-2xl bg-zinc-50 p-4">
-              <h3 className="font-semibold text-zinc-900">توضیحات</h3>
-              <p className="mt-2 text-sm leading-7 text-zinc-600">
-                {food.summary || "توضیحات این آیتم در حال حاضر موجود نیست."}
-              </p>
-            </div>
-
-            {drinks.length > 0 ? (
-              <section
-                aria-label="نوشیدنی‌های پیشنهادی کنار غذا"
-                className="rounded-2xl border border-[#e9e1e5] bg-[#f9f5f7] p-3"
-              >
-                <h3 className="mb-3 text-sm font-bold text-[#6d1e39]">
-                  کنار غذات چی مینوشی؟
-                </h3>
-                <ul className="flex flex-col gap-2">
-                  {drinks.map((drink) => {
-                    const canAdd = drink.enabled &&
-                      drink.sourceItemId !== undefined &&
-                      isAvailabilityActive(drink.availability ?? { type: "always" });
-                    return (
-                      <li key={drink.orderKey} className="flex items-center gap-3 rounded-2xl border border-[#eee8eb] bg-white p-2">
-                        <ProductImage
-                          src={drink.image}
-                          hasRealImage={drink.hasRealImage}
-                          alt=""
-                          className="h-16 w-14 shrink-0 rounded-lg"
-                          style={{ objectFit: "contain" }}
-                          logoClassName="p-2"
-                          width={56}
-                          height={64}
-                          loading="lazy"
-                        />
-                        <p className="min-w-0 flex-1 text-xs leading-6 font-semibold text-zinc-800">
-                          {drink.name}{drink.shortDescription ? ` – ${drink.shortDescription}` : ""}
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => onAddRecommendedDrink(drink)}
-                          disabled={!canAdd}
-                          aria-label={`افزودن ${drink.name}`}
-                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#d4dcd5] bg-[#f5faf6] text-xl text-[#7c9083] transition hover:bg-[#e8f1eb] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7a394a] disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          +
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
-            ) : null}
-          </div>
+          </footer>
         </motion.div>
       </motion.div>
     </AnimatePresence>

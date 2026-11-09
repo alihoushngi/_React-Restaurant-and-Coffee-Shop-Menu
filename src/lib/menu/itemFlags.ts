@@ -4,6 +4,7 @@ import type {
   Food,
   FoodImageLayout,
   FoodVariant,
+  MenuTreeNode,
 } from "../../types/menu";
 
 /** API booleans are active only when strictly `true`. */
@@ -18,10 +19,23 @@ export const CATEGORY_DISPLAY_TYPES = [
 
 export const resolveCategoryDisplayType = (
   value: unknown,
-): CategoryDisplayType =>
-  CATEGORY_DISPLAY_TYPES.includes(value as CategoryDisplayType)
-    ? (value as CategoryDisplayType)
-    : "LargeImage";
+  fallback?: unknown,
+): CategoryDisplayType => {
+  if (CATEGORY_DISPLAY_TYPES.includes(value as CategoryDisplayType)) {
+    return value as CategoryDisplayType;
+  }
+
+  // Missing/null/empty on a child may inherit an explicit parent DisplayType
+  // (e.g. شیک و اسموتی + زیردسته‌ها). Invalid strings never inherit.
+  if (
+    (value === undefined || value === null || value === "") &&
+    fallback !== undefined
+  ) {
+    return resolveCategoryDisplayType(fallback);
+  }
+
+  return "LargeImage";
+};
 
 export const resolveFoodImageLayout = (
   displayType: CategoryDisplayType,
@@ -121,6 +135,17 @@ export const filterFoodsByDietary = (
       isVegetarian: variants.every((variant) => variant.isVegetarian === true),
     }];
   });
+
+export const filterMenuTreeByDietary = (
+  nodes: readonly MenuTreeNode[],
+  filter: DietaryFilter,
+): MenuTreeNode[] => nodes.flatMap((node) => {
+  const foods = filterFoodsByDietary(node.foods, filter);
+  const subcategories = filterMenuTreeByDietary(node.subcategories, filter);
+  return foods.length || subcategories.length
+    ? [{ ...node, foods, subcategories }]
+    : [];
+});
 
 export const collectUniqueFlaggedFoods = (
   foods: readonly Food[],

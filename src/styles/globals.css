@@ -37,6 +37,10 @@
 
 :root {
   --font-vazir: "Vazirmatn", "Segoe UI", Tahoma, sans-serif;
+  --color-menu-wine: #6d1e39;
+  --color-menu-wine-soft: #c58d96;
+  --color-menu-surface: #fffbfc;
+  --color-menu-border: #eadfe3;
   --color-product-add: #637d6c;
   --color-order-available: #637d6c;
   --color-category-bg: #f6f1f0;
@@ -100,7 +104,8 @@ body {
 }
 
 .product-add-button:disabled {
-  background-color: color-mix(in srgb, var(--color-product-add) 45%, white);
+  background-color: #e5e5e5;
+  color: #7b7b7b;
 }
 
 html {
@@ -109,6 +114,7 @@ html {
 
 body {
   font-family: var(--font-vazir);
+  overflow-x: hidden;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -126,4 +132,19 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

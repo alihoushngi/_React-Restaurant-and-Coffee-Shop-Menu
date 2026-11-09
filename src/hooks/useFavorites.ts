@@ -6,18 +6,12 @@ import type {
   OrderSelectionQuantity,
 } from "../types/menu";
 import { getAllFavorites, saveFavorites } from "../lib/menu/utils";
+import { resolveFavoriteEntryMenuMode } from "../lib/menu/orderSelections";
 import { showToast } from "../lib/toast";
 
 const getEntryKey = (entry: FavoriteEntry) => entry.orderKey ?? entry.foodId;
 
-export const getFavoriteEntryMenuMode = (
-  entry: FavoriteEntry,
-): MenuMode | undefined => {
-  if (entry.menuMode) return entry.menuMode;
-  if (entry.orderKey?.startsWith("delivery:")) return "delivery";
-  if (entry.orderKey?.startsWith("dineIn:")) return "dineIn";
-  return undefined;
-};
+export const getFavoriteEntryMenuMode = resolveFavoriteEntryMenuMode;
 
 const getItemIdFromOrderKey = (orderKey: string) => {
   const marker = ":item:";

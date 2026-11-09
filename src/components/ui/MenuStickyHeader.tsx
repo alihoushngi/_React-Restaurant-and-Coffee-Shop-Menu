@@ -1,11 +1,11 @@
 import Logo from "@/assets/logo/LogoNew.svg";
 import { TABLE_TIME_NOTICE, WELCOME_TITLE } from "../../constants/menu";
-import type { MenuCategory } from "../../types/menu";
+import type { CategoryTab } from "./CategoryTabs";
 import { useEffect, useRef, type Ref } from "react";
 import CategoryTabs from "./CategoryTabs";
 
 interface MenuStickyHeaderProps {
-  categories: Pick<MenuCategory, "Id" | "Title" | "ParentId">[];
+  categories: CategoryTab[];
   activeCategoryId: string;
   onSelect: (id: string) => void;
   stickyRef?: Ref<HTMLDivElement>;

@@ -25,5 +25,8 @@ dist-ssr
 
 .env
 
-# Local customer task briefs and references
-/task/
+# Local agent kit, docs, and BMAD specs (personal — not published)
+.ai/
+/docs/
+agent.md
+AGENTS.md

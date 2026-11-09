@@ -1,4 +1,4 @@
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   useCallback,
   useEffect,
@@ -25,9 +25,12 @@ import {
   mapMenuItemToFood,
   resolveCategoryTitle,
   getOrderSelection,
+  isFoodAvailable,
   saveLastMenuMode,
 } from "../../lib/menu/utils";
+import { filterMenuTreeByDietary } from "../../lib/menu/itemFlags";
 import PageShell from "../layout/PageShell";
+import FoodAllergyEndnote from "../ui/FoodAllergyEndnote";
 import MenuStickyHeader from "../ui/MenuStickyHeader";
 import CategoryMenuSection from "./CategoryMenuSection";
 import FoodModal from "./FoodModal";
@@ -43,6 +46,7 @@ interface MenuPageProps {
 }
 
 const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
+  const reduceMotion = useReducedMotion() === true;
   const location = useLocation();
   const {
     addToFavorites,
@@ -70,8 +74,11 @@ const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
     [categories],
   );
   const menuTree = useMemo(
-    () => buildMenuTree(categories, items, menuMode, categoriesById),
-    [categories, categoriesById, items, menuMode],
+    () => filterMenuTreeByDietary(
+      buildMenuTree(categories, items, menuMode, categoriesById),
+      dietaryFilter,
+    ),
+    [categories, categoriesById, items, menuMode, dietaryFilter],
   );
   const searchableFoods = useMemo(
     () => items.map((item) =>
@@ -101,7 +108,12 @@ const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
   const visibleCategories = useMemo(
     () => [
       ...(hasFeatured ? [{ Id: -1, Title: featuredTitle, ParentId: null }] : []),
-      ...menuTree.map((node) => node.category),
+      ...menuTree.map((node) => ({
+        ...node.category,
+        selectionCount: node.foods.length + node.subcategories.reduce(
+          (total, child) => total + child.foods.length, 0,
+        ),
+      })),
     ],
     [menuTree, hasFeatured, featuredTitle],
   );
@@ -192,10 +204,10 @@ const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
 
       window.scrollTo({
         top: Math.max(0, targetTop),
-        behavior: "smooth",
+        behavior: reduceMotion ? "auto" : "smooth",
       });
     },
-    [stickyHeaderHeight],
+    [reduceMotion, stickyHeaderHeight],
   );
 
   const getFoodQuantity = useCallback(
@@ -211,7 +223,11 @@ const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
 
   const handleAddToOrder = useCallback(
     (food: Food) => {
-      if (!food.enabled) return;
+      if (
+        !isFoodAvailable(food.enabled, food.availability ?? { type: "always" })
+      ) {
+        return;
+      }
       if (food.variants?.length) {
         setVariantFood(food);
         return;
@@ -243,6 +259,7 @@ const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
       );
       addManyToFavorites(orderSelections);
       setVariantFood(null);
+      setSelectedFood(null);
     },
     [addManyToFavorites, menuMode],
   );
@@ -257,12 +274,15 @@ const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
       closeSearch();
       return;
     }
+    setSelectedFood(null);
+    setVariantFood(null);
     setIsSearchOpen(true);
   }, [closeSearch, isSearchOpen]);
 
   const handleSearchSelect = useCallback((food: Food) => {
     setIsSearchOpen(false);
     setSearchQuery("");
+    setVariantFood(null);
     setSelectedFood(food);
   }, []);
 
@@ -299,11 +319,16 @@ const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
           aria-label="پیشنهادهای منو"
         >
           <FeaturedFoodRail title="پرفروش‌های هفته" foods={popularFoods} onOpen={setSelectedFood} />
-          <FeaturedFoodRail title="کنار غذات چی مینوشی؟" foods={recommendedDrinks} onOpen={setSelectedFood} showTopDivider={popularFoods.length > 0} />
+          <FeaturedFoodRail drinkPreview title="کنار غذات چی می‌نوشی؟" foods={recommendedDrinks} onOpen={setSelectedFood} showTopDivider={popularFoods.length > 0} />
         </section>
       ) : null}
 
       <section className="mt-0 flex flex-col gap-6">
+        {menuTree.length === 0 && !hasFeatured ? (
+          <p role="status" className="py-12 text-center text-sm text-zinc-500">
+            آیتمی مطابق این فیلتر پیدا نشد
+          </p>
+        ) : null}
         {menuTree.map(({ category, foods, subcategories }, index) => {
           const storedSubcategoryId = activeSubcategories[category.Id];
           const activeSubId = subcategories.some(
@@ -341,16 +366,20 @@ const MenuPage = ({ menuMode, categories, items }: MenuPageProps) => {
         })}
       </section>
 
+      <FoodAllergyEndnote />
+
       <FoodModal
         food={selectedFood}
         suggestDrink={categoriesById.get(Number(selectedFood?.categoryId))?.SuggestDrink === true}
         recommendedDrinks={collectUniqueFlaggedFoods(searchableFoods, "isRecommendedDrink")}
         onAddRecommendedDrink={handleAddToOrder}
         quantity={selectedFood ? getFoodQuantity(selectedFood) : 0}
-        onClose={() => setSelectedFood(null)}
+        onClose={() => {
+          if (variantFood) return;
+          setSelectedFood(null);
+        }}
         onAddToOrder={() => {
           if (!selectedFood) return;
-          if (selectedFood.variants?.length) setSelectedFood(null);
           handleAddToOrder(selectedFood);
         }}
         onRemoveFromOrder={() =>

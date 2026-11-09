@@ -9,8 +9,12 @@ import {
   filterFoodsByDietary,
   resolveCategoryDisplayType,
   resolveFoodImageLayout,
+  toPersianDigits,
 } from "../../lib/menu/utils";
+import { getSubcategoryHeadingNote } from "../../constants/subcategoryHeadings";
 import FoodCard from "./FoodCard";
+import ProductImage from "../ui/ProductImage";
+import SubcategoryHeading from "../ui/SubcategoryHeading";
 
 interface CategoryMenuSectionProps {
   category: MenuCategory;
@@ -56,23 +60,36 @@ const FoodGrid = ({
     );
   }
 
-  const stackVertically =
-    displayType === "NoImage" ||
-    displayType === "FirstItemImage" ||
-    displayType === "SmallImageLeft";
+  const sharedImage = displayType === "FirstItemImage" ? foods[0] : null;
+  const stackGapClass =
+    displayType === "FirstItemImage"
+      ? "gap-2"
+      : displayType === "SmallImageLeft" || displayType === "NoImage"
+        ? "gap-4"
+        : "gap-3";
 
   return (
-    <div
-      className={
-        stackVertically ? "flex flex-col gap-4" : "grid gap-4 md:grid-cols-2"
-      }
-    >
+    <div className={`flex flex-col ${stackGapClass}`}>
+      {sharedImage ? (
+        <div className="mb-1.5 aspect-square overflow-hidden rounded-[18px] bg-zinc-100">
+          <ProductImage
+            src={sharedImage.image}
+            hasRealImage={sharedImage.hasRealImage}
+            alt={sharedImage.name}
+            className="h-full w-full"
+            loading={prioritizeImages ? "eager" : "lazy"}
+            width={640}
+            height={640}
+          />
+        </div>
+      ) : null}
       {foods.map((food, foodIndex) => (
         <FoodCard
           key={food.orderKey}
           food={food}
           quantity={getQuantity(food)}
           imagePriority={prioritizeImages && foodIndex < 2}
+          compact={displayType === "FirstItemImage"}
           imageLayout={resolveFoodImageLayout(
             displayType,
             foodIndex,
@@ -112,6 +129,7 @@ export default function CategoryMenuSection({
     useSubcategoryTabs
       ? (activeSubcategory ?? subcategories[0])?.category.DisplayType
       : category.DisplayType,
+    useSubcategoryTabs ? category.DisplayType : undefined,
   );
 
   const scopedFoods = useSubcategoryTabs
@@ -123,6 +141,12 @@ export default function CategoryMenuSection({
     0,
   );
   const totalFoods = foods.length + childFoodCount;
+  const parentVisibleFoods = filterFoodsByDietary(foods, dietaryFilter);
+  const visibleSubcategories = subcategories.flatMap((sub, subcategoryIndex) => {
+    const filtered = filterFoodsByDietary(sub.foods, dietaryFilter);
+    if (filtered.length === 0) return [];
+    return [{ sub, filtered, subcategoryIndex }];
+  });
 
   const renderFilteredGrid = (
     sourceFoods: Food[],
@@ -146,13 +170,13 @@ export default function CategoryMenuSection({
       data-category={category.Id}
       ref={sectionRef}
       style={{ scrollMarginTop }}
-      className="category-surface rounded-[28px] p-4 shadow-sm"
+      className="category-surface rounded-[28px] border border-[#eadfe3] bg-[#fffbfc] p-3 shadow-[0_8px_24px_rgba(74,33,48,0.05)]"
     >
-      <div className="mb-4 flex flex-col items-start gap-1 text-sm text-zinc-500">
-        <span className="text-lg font-bold text-zinc-900">
+      <div className="mb-3 flex items-center justify-between gap-3 text-sm text-zinc-500">
+        <span className="text-lg font-bold text-[#3a222a]">
           {category.Title}
         </span>
-        <span>{totalFoods} آیتم</span>
+        <span>{toPersianDigits(totalFoods)} انتخاب</span>
       </div>
 
       {useSubcategoryTabs ? (
@@ -188,8 +212,8 @@ export default function CategoryMenuSection({
           index === 0,
         )
       ) : (
-        <div className="flex flex-col gap-6">
-          {foods.length > 0
+        <div className="flex flex-col">
+          {parentVisibleFoods.length > 0
             ? renderFilteredGrid(
                 foods,
                 resolveCategoryDisplayType(category.DisplayType),
@@ -197,23 +221,25 @@ export default function CategoryMenuSection({
               )
             : null}
 
-          {subcategories.map((sub, subcategoryIndex) => {
-            const filtered = filterFoodsByDietary(sub.foods, dietaryFilter);
-            if (filtered.length === 0) return null;
-
-            return (
-              <div key={sub.category.Id} className="flex flex-col gap-3">
-                <h3 className="text-sm font-semibold text-zinc-700">
-                  {sub.category.Title}
-                </h3>
+          {visibleSubcategories.map(
+            ({ sub, filtered, subcategoryIndex }, visibleIndex) => (
+              <div key={sub.category.Id} className="flex flex-col">
+                <SubcategoryHeading
+                  title={sub.category.Title}
+                  note={getSubcategoryHeadingNote(sub.category.Id)}
+                  isFirst={
+                    visibleIndex === 0 && parentVisibleFoods.length === 0
+                  }
+                />
                 <FoodGrid
                   foods={filtered}
                   displayType={resolveCategoryDisplayType(
                     sub.category.DisplayType,
+                    category.DisplayType,
                   )}
                   prioritizeImages={
                     index === 0 &&
-                    foods.length === 0 &&
+                    parentVisibleFoods.length === 0 &&
                     subcategoryIndex === 0
                   }
                   getQuantity={getQuantity}
@@ -222,8 +248,8 @@ export default function CategoryMenuSection({
                   onOpen={onOpen}
                 />
               </div>
-            );
-          })}
+            ),
+          )}
         </div>
       )}
     </div>

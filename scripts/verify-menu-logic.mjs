@@ -2,8 +2,13 @@
 import {
   isTruthyApiFlag, readItemFeatureFlags, resolveCategoryDisplayType,
   resolveFoodImageLayout, matchesDietaryFilter, filterFoodsByDietary,
-  filterFoodsForSearchSheet, collectUniqueFlaggedFoods,
+  filterFoodsForSearchSheet, collectUniqueFlaggedFoods, filterMenuTreeByDietary,
 } from "../src/lib/menu/itemFlags.ts";
+import {
+  getCartItemLabels,
+  resolveFavoriteEntryMenuMode,
+  resolveOrderSelections,
+} from "../src/lib/menu/orderSelections.ts";
 
 let failed = 0;
 const assert = (condition, message) => {
@@ -45,6 +50,22 @@ assert(isTruthyApiFlag(1) === false, "truthy non-boolean inactive");
 assert(resolveCategoryDisplayType(undefined) === "LargeImage", "DisplayType absent → LargeImage");
 assert(resolveCategoryDisplayType("bogus") === "LargeImage", "DisplayType invalid → LargeImage");
 assert(resolveCategoryDisplayType("NoImage") === "NoImage", "DisplayType NoImage");
+assert(
+  resolveCategoryDisplayType(undefined, "SmallImageLeft") === "SmallImageLeft",
+  "missing child DisplayType inherits parent",
+);
+assert(
+  resolveCategoryDisplayType(null, "SmallImageLeft") === "SmallImageLeft",
+  "null child DisplayType inherits parent",
+);
+assert(
+  resolveCategoryDisplayType("bogus", "SmallImageLeft") === "LargeImage",
+  "invalid child DisplayType does not inherit",
+);
+assert(
+  resolveCategoryDisplayType("NoImage", "SmallImageLeft") === "NoImage",
+  "explicit child DisplayType wins over parent",
+);
 assert(resolveFoodImageLayout("FirstItemImage", 0) === "large", "FirstItemImage index 0 large");
 assert(resolveFoodImageLayout("FirstItemImage", 1) === "none", "FirstItemImage index 1 none");
 assert(resolveFoodImageLayout("SmallImageLeft", 0) === "small-left", "SmallImageLeft layout");
@@ -131,6 +152,49 @@ assert(filterFoodsByDietary([group], "all")[0] === group, "all preserves complet
 assert(filterFoodsByDietary([{ variants: [{ isVegetarian: false }] }], "vegetarian").length === 0, "empty variant group removed");
 assert(readItemFeatureFlags({ IsPopular: "true", ShowInSearch: 1 }).isPopular !== true, "nonboolean API flags rejected in mapper");
 assert(resolveFoodImageLayout("NoImage", 0) === "none", "NoImage has no image");
+
+const tree = [
+  { category: { Id: 1 }, foods: [neither], subcategories: [] },
+  { category: { Id: 2 }, foods: [], subcategories: [
+    { category: { Id: 3 }, foods: [group], subcategories: [] },
+    { category: { Id: 4 }, foods: [dietOnly], subcategories: [] },
+  ] },
+  { category: { Id: 5 }, foods: [], subcategories: [] },
+];
+for (const mode of ["dineIn", "delivery"]) {
+  const source = tree.map(node => ({ ...node, foods: node.foods.map(food => ({ ...food, menuMode: mode })) }));
+  const filtered = filterMenuTreeByDietary(source, "vegetarian");
+  assert(filtered.length === 1 && filtered[0].category.Id === 2, `${mode}: empty roots removed, parent retained`);
+  assert(filtered[0].subcategories.length === 1 && filtered[0].subcategories[0].category.Id === 3, `${mode}: empty subcategories removed`);
+  assert(filtered[0].subcategories[0].foods[0].variants.length === 1, `${mode}: only matching variants retained`);
+  assert(filterMenuTreeByDietary(source, "all").length === 2, `${mode}: all restores valid categories`);
+}
+assert(tree[1].subcategories.length === 2 && group.variants.length === 2, "tree filtering does not mutate source");
+assert(filterMenuTreeByDietary([tree[0]], "dietary").length === 0, "no matches produces empty tree");
+assert(filterMenuTreeByDietary([{ ...tree[0], foods: [{ isVegetarian: "true" }] }], "vegetarian").length === 0, "string flag cannot retain category");
+
+const dineInFood = {
+  orderKey: "dineIn:item:10",
+  sourceItemId: 10,
+  name: "پاستا",
+  variant: { label: "بزرگ", description: "۳۵۰ گرم" },
+};
+const deliveryFood = {
+  orderKey: "delivery:item:10",
+  sourceItemId: 10,
+  name: "پاستا بیرون‌بر",
+};
+const favorites = [
+  { foodId: "10", orderKey: "dineIn:item:10", menuMode: "dineIn", quantity: 2, addedAt: "2026-01-01" },
+  { foodId: "10", orderKey: "delivery:item:10", menuMode: "delivery", quantity: 1, addedAt: "2026-01-01" },
+  { foodId: "99", orderKey: "dineIn:item:99", menuMode: "dineIn", quantity: 1, addedAt: "2026-01-01" },
+];
+const dineInResolved = resolveOrderSelections(favorites, [dineInFood], "dineIn");
+assert(dineInResolved.length === 1 && dineInResolved[0].quantity === 2, "dine-in selections ignore delivery rows and missing foods");
+assert(resolveOrderSelections(favorites, [deliveryFood], "delivery").length === 1, "delivery selections stay isolated");
+assert(resolveFavoriteEntryMenuMode({ orderKey: "delivery:item:1" }) === "delivery", "orderKey prefix resolves menu mode");
+assert(getCartItemLabels(dineInFood) === "بزرگ - ۳۵۰ گرم", "cart labels join variant label and description");
+assert(getCartItemLabels(deliveryFood) === "", "cart labels empty without variant");
 
 if (failed > 0) {
   console.error(`\n${failed} assertion(s) failed`);
