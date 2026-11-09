@@ -19,7 +19,7 @@ const PageShell = ({
   searchControls,
 }: PageShellProps) => {
   return (
-    <main className="min-h-screen bg-[#f6f3f4] text-right">
+    <main className="min-h-screen bg-white text-right">
       <div
         className={`mx-auto flex min-h-screen w-full max-w-[540px] flex-col gap-2 bg-white px-3 pt-3 pb-28 ${className}`.trim()}
       >
